@@ -85,6 +85,9 @@ if ($conn->query($events) === TRUE) {
     echo "❌ Error creating events table: " . $conn->error . "<br>";
 }
 
+// === Update Events Table to include status ===
+$conn->query("ALTER TABLE events ADD COLUMN status ENUM('ongoing','finished') DEFAULT 'ongoing'");
+
 //Create Event Roles Table
 $event_roles = "CREATE TABLE IF NOT EXISTS event_roles (
     id INT AUTO_INCREMENT PRIMARY KEY,
