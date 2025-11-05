@@ -1,5 +1,5 @@
 # ByteWave Website Development
-Here is the Github for the development of GPSphere
+Here is the Github for the development of GPSphere. GPSphere is developed using php.
 
 # Important 
 If you are using my code. Please take note that my MySQL port was forced to change to 3307. Please change the port in the code if you are using my code.
