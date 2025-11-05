@@ -1,4 +1,4 @@
-# ByteWWave Website development
+# ByteWave Website Development
 Here is the Github for the development of GPSphere
 
 # Important 
