@@ -66,7 +66,7 @@ if ($checkAdmin->num_rows == 0) {
     echo "ℹ️ Admin account already exists.<br>";
 }
 
-// === Create Events Table ===
+//Create Events Table
 $events = "CREATE TABLE IF NOT EXISTS events (
     id INT AUTO_INCREMENT PRIMARY KEY,
     event_name VARCHAR(200) NOT NULL,
@@ -85,8 +85,44 @@ if ($conn->query($events) === TRUE) {
     echo "❌ Error creating events table: " . $conn->error . "<br>";
 }
 
+//Create Event Roles Table
+$event_roles = "CREATE TABLE IF NOT EXISTS event_roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT NOT NULL,
+    role_name VARCHAR(100) NOT NULL,
+    slots INT DEFAULT 1,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+)";
+if ($conn->query($event_roles) === TRUE) {
+    echo "✅ Table 'event_roles' created or already exists.<br>";
+} else {
+    echo "❌ Error creating event_roles table: " . $conn->error . "<br>";
+}
+
+//Create Event Join Requests Table
+$event_requests = "CREATE TABLE IF NOT EXISTS event_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id INT NOT NULL,
+    user_id INT NOT NULL,
+    role_id INT NOT NULL,
+    status ENUM('pending','approved','rejected') DEFAULT 'pending',
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES event_roles(id) ON DELETE CASCADE
+)";
+if ($conn->query($event_requests) === TRUE) {
+    echo "✅ Table 'event_requests' created or already exists.<br>";
+} else {
+    echo "❌ Error creating event_requests table: " . $conn->error . "<br>";
+}
+
+
 
 echo "<hr><b>🎉 Database setup completed successfully!</b>";
 $conn->close();
 ?>;
+
+
+
 
