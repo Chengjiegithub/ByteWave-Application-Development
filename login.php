@@ -59,8 +59,13 @@ if (isset($_POST['login'])) {
                         <p>From: GPSphere UTM Team</p>
                     ";
 
-                    $mail->send();
-                    $success = "A verification code (TAC) has been sent to your email.";
+                    // ---- TEST MODE ----
+                    // Comment out the real email sending during local testing
+                    // $mail->send();
+                    // $success = "A verification code (TAC) has been sent to your email.";
+                    // $redirect = true;
+                // Instead, just show TAC on screen for local testing
+                    $success = "✅ Test Mode: Your TAC is <b>$tac</b> (expires $expiry)";
                     $redirect = true;
 
                 } catch (Exception $e) {
