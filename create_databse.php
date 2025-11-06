@@ -1,12 +1,4 @@
 <?php
-/* 
----------------------------------------
- File: create_database.php
- Author: ByteWave Team (GPSphere Project)
- Purpose: Automatically create database and tables
----------------------------------------
-*/
-
 $host = "localhost";
 $user = "root";
 $pass = "";
@@ -14,7 +6,6 @@ $port = 3307; // ⚠️ Change this if your MySQL uses another port
 
 // 1️⃣ Connect to MySQL Server (no database selected yet)
 $conn = new mysqli($host, $user, $pass, "", $port);
-
 if ($conn->connect_error) {
     die("❌ Connection failed: " . $conn->connect_error);
 }
@@ -52,7 +43,6 @@ if ($conn->query($table) === TRUE) {
 // 5️⃣ Optional: Add an admin account
 $adminEmail = "admin@gpsphere.com";
 $adminPass = password_hash("Admin123!", PASSWORD_DEFAULT);
-
 $checkAdmin = $conn->query("SELECT * FROM users WHERE email='$adminEmail'");
 if ($checkAdmin->num_rows == 0) {
     $insertAdmin = "INSERT INTO users (name, email, password, role, status) 
@@ -66,7 +56,7 @@ if ($checkAdmin->num_rows == 0) {
     echo "ℹ️ Admin account already exists.<br>";
 }
 
-//Create Events Table
+// 6️⃣ Create Events Table
 $events = "CREATE TABLE IF NOT EXISTS events (
     id INT AUTO_INCREMENT PRIMARY KEY,
     event_name VARCHAR(200) NOT NULL,
@@ -85,10 +75,16 @@ if ($conn->query($events) === TRUE) {
     echo "❌ Error creating events table: " . $conn->error . "<br>";
 }
 
-// === Update Events Table to include status ===
-$conn->query("ALTER TABLE events ADD COLUMN status ENUM('ongoing','finished') DEFAULT 'ongoing'");
+// ✅ Check if 'status' column already exists before adding
+$checkColumn = $conn->query("SHOW COLUMNS FROM events LIKE 'status'");
+if ($checkColumn->num_rows == 0) {
+    $conn->query("ALTER TABLE events ADD COLUMN status ENUM('ongoing','finished') DEFAULT 'ongoing'");
+    echo "✅ Added 'status' column to 'events' table.<br>";
+} else {
+    echo "ℹ️ 'status' column already exists in 'events' table.<br>";
+}
 
-//Create Event Roles Table
+// 7️⃣ Create Event Roles Table
 $event_roles = "CREATE TABLE IF NOT EXISTS event_roles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     event_id INT NOT NULL,
@@ -102,7 +98,7 @@ if ($conn->query($event_roles) === TRUE) {
     echo "❌ Error creating event_roles table: " . $conn->error . "<br>";
 }
 
-//Create Event Join Requests Table
+// 8️⃣ Create Event Requests Table
 $event_requests = "CREATE TABLE IF NOT EXISTS event_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     event_id INT NOT NULL,
@@ -120,12 +116,21 @@ if ($conn->query($event_requests) === TRUE) {
     echo "❌ Error creating event_requests table: " . $conn->error . "<br>";
 }
 
-
+// 9️⃣ Create Notifications Table
+$notifications = "CREATE TABLE IF NOT EXISTS notifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  message TEXT NOT NULL,
+  is_read TINYINT(1) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)";
+if ($conn->query($notifications) === TRUE) {
+    echo "✅ Table 'notifications' created or already exists.<br>";
+} else {
+    echo "❌ Error creating notifications table: " . $conn->error . "<br>";
+}
 
 echo "<hr><b>🎉 Database setup completed successfully!</b>";
 $conn->close();
-?>;
-
-
-
-
+?>

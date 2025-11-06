@@ -92,5 +92,9 @@ $status = strtolower($user['status'] ?? 'pending');
 
         <a href="logout.php" class="logout">Logout</a>
     </div>
+
+    <!-- Chatbot here -->
+    <?php include('chatbot.php'); ?>
+
 </body>
 </html>
