@@ -102,5 +102,7 @@ if ($notifications->num_rows > 0) {
   </table>
 </div>
 <?php endwhile; endif; ?>
+
+<?php include('chatbot.php'); ?>
 </body>
 </html>
