@@ -22,11 +22,6 @@
       <button class="quick-btn">What events available</button>
       <button class="quick-btn">How to join</button>
     </div>
-
-    <div id="chatbot-input-area">
-      <input type="text" id="chatbot-input" placeholder="Type your question here..." aria-label="Chat input" />
-      <button id="chatbot-send">Send</button>
-    </div>
   </div>
 </div>
 

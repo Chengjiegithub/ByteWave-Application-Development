@@ -1,8 +1,6 @@
 (function () {
   const toggleBtn = document.getElementById('chatbot-toggle');
   const chatbotBox = document.getElementById('chatbot-box');
-  const sendBtn = document.getElementById('chatbot-send');
-  const inputField = document.getElementById('chatbot-input');
   const chatMessages = document.getElementById('chatbot-messages');
   const quickBtns = document.querySelectorAll('.quick-btn');
 
@@ -12,16 +10,12 @@
 
   toggleBtn.addEventListener('click', () => {
     chatbotBox.style.display = chatbotBox.style.display === 'flex' ? 'none' : 'flex';
-    inputField.focus();
   });
-
-  sendBtn.addEventListener('click', sendMessage);
-  inputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
   quickBtns.forEach(b => {
     b.addEventListener('click', () => {
-      inputField.value = b.innerText;
-      sendMessage();
+      const text = b.innerText.trim();
+      sendMessage(text);
     });
   });
 
@@ -33,11 +27,9 @@
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  function sendMessage() {
-    const text = inputField.value.trim();
+  function sendMessage(text) {
     if (text === '') return;
     appendMessage(text, 'user');
-    inputField.value = '';
 
     fetch(backend, {
       method: 'POST',
@@ -65,7 +57,7 @@
       })
       .catch(err => {
         console.error("Fetch error:", err);
-        appendMessage("⚠️ Sorry, I couldn’t reach the assistant.", 'bot');
+        appendMessage("⚠️ Sorry, I couldn't reach the assistant.", 'bot');
       });
   }
 })();

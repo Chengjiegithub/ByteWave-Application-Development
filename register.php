@@ -10,15 +10,13 @@ if (isset($_POST['register'])) {
 
     // --- Basic validation ---
     if (empty($name) || empty($email) || empty($password) || empty($confirm)) {
-        $msg = "<div class='msg error'>All fields are required.</div>";
+        $error = "All fields are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $msg = "<div class='msg error'>Invalid email format.</div>";
+        $error = "Invalid email format.";
     } elseif ($password !== $confirm) {
-        $msg = "<div class='msg error'>Passwords do not match.</div>";
+        $error = "Passwords do not match.";
     } elseif (!preg_match('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/', $password)) {
-        $msg = "<div class='msg error'>
-                Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.
-                </div>";
+        $error = "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.";
     } else {
         // --- Check if email already exists ---
         $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
@@ -27,7 +25,7 @@ if (isset($_POST['register'])) {
         $check->store_result();
 
         if ($check->num_rows > 0) {
-            $msg = "<div class='msg error'>Email already registered. Please login.</div>";
+            $error = "Email already registered. Please login.";
         } else {
             // --- Insert new user ---
             $hash = password_hash($password, PASSWORD_DEFAULT);
@@ -40,13 +38,9 @@ if (isset($_POST['register'])) {
             $insert->bind_param("sssss", $name, $email, $hash, $role, $status);
 
             if ($insert->execute()) {
-                $msg = "<div class='msg success'>
-                        Registration successful!<br>
-                        Your account is pending approval by the admin.<br>
-                        <a href='login.php'>Proceed to Login</a>
-                        </div>";
+                $success = "Registration successful! Your account is pending approval by the admin.";
             } else {
-                $msg = "<div class='msg error'>Registration failed. Please try again.</div>";
+                $error = "Registration failed. Please try again.";
             }
         }
     }
@@ -54,74 +48,442 @@ if (isset($_POST['register'])) {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>GPSphere | Register</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | Gerakan Pengguna Siswa UTM</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #2c3e50;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header-top {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .back-link {
+            color: #2980b9;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            transition: color 0.3s;
+        }
+        
+        .back-link:hover {
+            color: #1c5980;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2980b9 0%, #1c5980 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+            padding: 5px;
+            line-height: 1.2;
+        }
+        
+        .header-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a5490;
+            margin-bottom: 2px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .header-divider {
+            height: 2px;
+            background: #2980b9;
+            width: 100%;
+        }
+        
+        .main-content {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
+            padding: 40px 20px;
         }
-        .container {
-            background: #fff;
-            padding: 40px 60px;
-            border-radius: 12px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 360px;
-        }
-        h2 { color: #2c3e50; margin-bottom: 25px; }
-        input {
-            display: block;
+        
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
             width: 100%;
-            margin-bottom: 15px;
-            padding: 10px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
+            max-width: 450px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
-        button {
+        
+        .form-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px;
+            color: #2980b9;
+        }
+        
+        .form-title {
+            text-align: center;
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #2980b9;
+            background: white;
+            border-bottom-color: #2980b9;
+            font-weight: 600;
+        }
+        
+        .tab:not(.active):hover {
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: #999;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 40px 12px 40px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input.password-input {
+            padding-right: 45px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #2980b9;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #999;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+        }
+        
+        .password-toggle:hover {
+            color: #2980b9;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
             background: #2980b9;
             color: white;
             border: none;
-            padding: 10px 20px;
+            border-radius: 8px;
             font-size: 16px;
-            border-radius: 6px;
+            font-weight: 600;
             cursor: pointer;
-            transition: 0.3s;
+            transition: background 0.3s;
         }
-        button:hover { background: #1c5980; }
+        
+        .submit-btn:hover {
+            background: #1c5980;
+        }
+        
         .msg {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 12px;
+            border-radius: 8px;
             font-size: 14px;
         }
-        .error { background: #f8d7da; color: #721c24; }
-        .success { background: #d4edda; color: #155724; }
-        a { color: #2980b9; text-decoration: none; }
-        a:hover { text-decoration: underline; }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .privacy-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid #27ae60;
+        }
+        
+        .privacy-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e8f5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #27ae60;
+        }
+        
+        .privacy-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .privacy-list {
+            list-style: none;
+        }
+        
+        .privacy-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .privacy-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 25px 20px;
+        }
+        
+        .footer-text {
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .form-card, .privacy-card {
+                padding: 30px 20px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Register for GPSphere</h2>
-        <?php if (isset($msg)) echo $msg; ?>
-        <form method="POST" action="">
-            <input type="text" name="name" placeholder="Full Name" required>
-            <input type="email" name="email" placeholder="Student Email" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <input type="password" name="confirm" placeholder="Confirm Password" required>
-            <button type="submit" name="register">Register</button>
-        </form>
-        <p>Already have an account? <a href="login.php">Login here</a></p>
+    <header class="header">
+        <div class="header-top">
+            <a href="index.php" class="back-link">← Back</a>
+            <div class="logo-section">
+                <div class="logo-circle">GERAKAN PENGGUNA SISWA UTM</div>
+                <div class="header-text">
+                    <div class="main-title">Gerakan Pengguna Siswa UTM</div>
+                    <div class="subtitle">Student Portal</div>
+                </div>
+            </div>
+        </div>
+        <div class="header-divider"></div>
+    </header>
+    
+    <div class="main-content">
+        <div class="form-card">
+            <div class="form-icon">👤+</div>
+            <p class="form-title">Login or register for GPS membership</p>
+            
+            <div class="tabs">
+                <button class="tab" onclick="window.location.href='login.php'">Login</button>
+                <button class="tab active" onclick="window.location.href='register.php'">Register</button>
+            </div>
+            
+            <?php if (isset($error)): ?>
+                <div class="msg error"><?= htmlspecialchars($error) ?></div>
+            <?php elseif (isset($success)): ?>
+                <div class="msg success"><?= htmlspecialchars($success) ?><br><a href="login.php" style="color: #155724; text-decoration: underline;">Proceed to Login</a></div>
+            <?php endif; ?>
+            
+            <form method="POST" action="">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" name="name" class="form-input" placeholder="Enter your full name" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">✉</span>
+                        <input type="email" name="email" class="form-input" placeholder="your.email@utm.my" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" name="password" id="password" class="form-input password-input" placeholder="Enter your password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('password')">👁️</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" name="confirm" id="confirm-password" class="form-input password-input" placeholder="Confirm your password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirm-password')">👁️</button>
+                    </div>
+                </div>
+                
+                <button type="submit" name="register" class="submit-btn">Register</button>
+            </form>
+            
+            <p style="text-align: center; margin-top: 15px; font-size: 14px; color: #666;">
+                Already have an account? <a href="login.php" style="color: #2980b9; text-decoration: none;">Login here</a>
+            </p>
+        </div>
+        
+        <div class="privacy-card">
+            <div class="privacy-icon">🔒</div>
+            <h3 class="privacy-title">Data Protection & Privacy (PDPA)</h3>
+            <ul class="privacy-list">
+                <li>Data encryption and secure storage</li>
+                <li>Minimal data collection</li>
+                <li>No data sharing with third parties</li>
+                <li>Right to access and delete your data</li>
+            </ul>
+        </div>
     </div>
+    
+    <footer class="footer">
+        <p class="footer-text">© 2025 Gerakan Pengguna Siswa UTM. All rights reserved.</p>
+    </footer>
+    
+    <script>
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggle = input.nextElementSibling;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                toggle.textContent = '👁️';
+            }
+        }
+    </script>
 </body>
 </html>
