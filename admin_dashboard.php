@@ -175,17 +175,10 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'analytics';
             gap: 15px;
         }
         
-        .logo-circle {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #1a5490;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
+        .logo-img {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
         }
         
         .header-text h1 {
@@ -456,7 +449,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'analytics';
     <header class="header">
         <div class="header-top">
             <div class="logo-section">
-                <div class="logo-circle">GPS</div>
+                <img src="assests/Official GPS Logo Coloured.png" alt="GPS Logo" class="logo-img">
                 <div class="header-text">
                     <h1>Gerakan Pengguna Siswa UTM</h1>
                     <div class="subtitle">Administrator Portal</div>

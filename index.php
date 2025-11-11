@@ -40,20 +40,10 @@ session_start();
             gap: 15px;
         }
         
-        .logo-circle {
-            width: 60px;
+        .logo-img {
             height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #2980b9 0%, #1c5980 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 12px;
-            text-align: center;
-            padding: 5px;
-            line-height: 1.2;
+            width: auto;
+            object-fit: contain;
         }
         
         .header-text {
@@ -272,6 +262,73 @@ session_start();
             right: 0 !important;
         }
         
+        /* Footer styles */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 20px 20px;
+            margin-top: 80px;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-section h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2980b9;
+        }
+        
+        .footer-section p,
+        .footer-section a {
+            color: #bdc3c7;
+            text-decoration: none;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        
+        .footer-section a:hover {
+            color: #2980b9;
+            transition: color 0.3s;
+        }
+        
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 20px;
+            border-top: 1px solid #34495e;
+            text-align: center;
+            color: #95a5a6;
+            font-size: 14px;
+        }
+        
+        .footer-social {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .footer-social a {
+            width: 35px;
+            height: 35px;
+            background: #34495e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        
+        .footer-social a:hover {
+            background: #2980b9;
+        }
+        
         @media (max-width: 768px) {
             .header-top {
                 flex-direction: column;
@@ -302,6 +359,15 @@ session_start();
                 right: 15px;
                 left: auto;
             }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .footer-social {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -309,7 +375,7 @@ session_start();
     <header class="header">
         <div class="header-top">
             <div class="logo-section">
-                <div class="logo-circle">GERAKAN PENGGUNA SISWA UTM</div>
+                <img src="assests/Official GPS Logo Coloured.png" alt="GPS Logo" class="logo-img">
                 <div class="header-text">
                     <div class="main-title">Gerakan Pengguna Siswa UTM</div>
                     <div class="subtitle">Student Consumer Movement</div>
@@ -373,6 +439,40 @@ session_start();
             </div>
         </section>
     </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About GPS UTM</h3>
+                <p>Gerakan Pengguna Siswa UTM (GPS UTM) is a student consumer movement dedicated to promoting smart, ethical, and responsible consumer practices among students.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <p><a href="index.php">Home</a></p>
+                <p><a href="about.php">About GPS</a></p>
+                <p><a href="register.php">Student Registration</a></p>
+                <p><a href="login.php">Member Login</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Universiti Teknologi Malaysia</p>
+                <p>81310 UTM Johor Bahru</p>
+                <p>Johor, Malaysia</p>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="footer-social">
+                    <a href="#" aria-label="Facebook">📘</a>
+                    <a href="#" aria-label="Instagram">📷</a>
+                    <a href="#" aria-label="Twitter">🐦</a>
+                    <a href="#" aria-label="Email">✉️</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; <?php echo date('Y'); ?> Gerakan Pengguna Siswa UTM. All rights reserved.</p>
+        </div>
+    </footer>
     
     <?php include('chatbot.php'); ?>
 </body>

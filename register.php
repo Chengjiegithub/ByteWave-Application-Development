@@ -100,21 +100,11 @@ if (isset($_POST['register'])) {
             align-items: center;
             gap: 15px;
         }
-        
-        .logo-circle {
-            width: 60px;
+
+        .logo-img {
             height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #2980b9 0%, #1c5980 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 12px;
-            text-align: center;
-            padding: 5px;
-            line-height: 1.2;
+            width: auto;
+            object-fit: contain;
         }
         
         .header-text {
@@ -386,7 +376,7 @@ if (isset($_POST['register'])) {
         <div class="header-top">
             <a href="index.php" class="back-link">← Back</a>
             <div class="logo-section">
-                <div class="logo-circle">GERAKAN PENGGUNA SISWA UTM</div>
+                <img src="assests/Official GPS Logo Coloured.png" alt="GPS Logo" class="logo-img">
                 <div class="header-text">
                     <div class="main-title">Gerakan Pengguna Siswa UTM</div>
                     <div class="subtitle">Student Portal</div>
