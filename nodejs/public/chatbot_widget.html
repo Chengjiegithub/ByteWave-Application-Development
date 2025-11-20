@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GPSphere Chatbot</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    .chatbox {
+        width: 320px;
+        height: 420px;
+        display: flex;
+        flex-direction: column;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        border: 1px solid #ccc;
+    }
+
+    .chat-header {
+        background: #436CFF;
+        color: white;
+        padding: 12px;
+        font-size: 17px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .chat-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        background: #f6f7fc;
+    }
+
+    .topic-btn {
+        width: 100%;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 8px;
+        text-align: left;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 15px;
+    }
+
+    .topic-btn:hover {
+        background: #eef2ff;
+    }
+
+    .answer-box {
+        padding: 10px;
+        background: white;
+        border-left: 4px solid #436CFF;
+        border-radius: 5px;
+        margin-top: 8px;
+        font-size: 14px;
+        display: none;
+    }
+</style>
+
+</head>
+<body>
+
+<div class="chatbox">
+    <div class="chat-header">GPSphere Chatbot</div>
+
+    <div class="chat-content">
+
+        <!-- Topic 1 -->
+        <button class="topic-btn" onclick="toggleAnswer(1)">📌 What is GPSphere?</button>
+        <div id="answer1" class="answer-box">
+            GPSphere is the official digital system for GPS UTM members and students.
+            It manages registrations, events, approvals, and communication.
+        </div>
+
+        <!-- Topic 2 -->
+        <button class="topic-btn" onclick="toggleAnswer(2)">📝 How do I register?</button>
+        <div id="answer2" class="answer-box">
+            Go to the Register tab → fill in your details → wait for admin approval.
+            Once approved, you become a GPS member.
+        </div>
+
+        <!-- Topic 3 -->
+        <button class="topic-btn" onclick="toggleAnswer(3)">🔐 What is TAC and how does login work?</button>
+        <div id="answer3" class="answer-box">
+            TAC (Time Authentication Code) is a security code sent to your email.
+            Enter your password → click Login → check email → enter TAC.
+        </div>
+
+        <!-- Topic 4 -->
+        <button class="topic-btn" onclick="toggleAnswer(4)">🎉 How do I join an event?</button>
+        <div id="answer4" class="answer-box">
+            Login as a member → go to your dashboard → view events →
+            click Apply on your desired role → wait for admin approval.
+        </div>
+
+        <!-- Topic 5 -->
+        <button class="topic-btn" onclick="toggleAnswer(5)">💼 What roles can I join?</button>
+        <div id="answer5" class="answer-box">
+            Every event has different roles. Examples include Director, Secretary,
+            Technical Crew, Helpers, and more depending on event structure.
+        </div>
+
+        <!-- Topic 6 -->
+        <button class="topic-btn" onclick="toggleAnswer(6)">📞 How do I contact GPS?</button>
+        <div id="answer6" class="answer-box">
+            You can contact the GPS committee through social media
+            or by visiting the GPS room at UTM.
+        </div>
+
+    </div>
+</div>
+
+<script>
+function toggleAnswer(num) {
+    const ans = document.getElementById("answer" + num);
+    ans.style.display = ans.style.display === "block" ? "none" : "block";
+}
+</script>
+
+</body>
+</html>

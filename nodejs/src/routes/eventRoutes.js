@@ -9,7 +9,12 @@ const {
   getEventById,
   createEvent,
   updateEvent,
-  deleteEvent
+  deleteEvent,
+  applyForRole,
+  getApplicationsForEvent,
+  approveApplication,
+  rejectApplication,
+  cancelApplication
 } = require('../controllers/eventController');
 
 const router = express.Router();
@@ -28,5 +33,23 @@ router.put('/:eventId', verifySession, checkRole(['admin']), updateEvent);
 
 // DELETE /events/:eventId - Delete event (admin only)
 router.delete('/:eventId', verifySession, checkRole(['admin']), deleteEvent);
+
+// GET /events/:id/applications - view all applications for an event (admin only)
+router.get('/:id/applications', verifySession, checkRole(['admin']), getApplicationsForEvent);
+
+// POST /events/applications/:id/approve - approve an application (admin only)
+router.post('/applications/:id/approve', verifySession, checkRole(['admin']), approveApplication);
+
+// POST /events/applications/:id/reject - reject an application (admin only)
+router.post('/applications/:id/reject', verifySession, checkRole(['admin']), rejectApplication);
+
+// POST /events/:id/apply - member applies for a role (member)
+router.post('/:id/apply', verifySession, applyForRole);
+
+// DELETE /events/applications/:id - member cancels their pending application
+router.delete('/applications/:id', verifySession, cancelApplication);
+
+
+
 
 module.exports = router;

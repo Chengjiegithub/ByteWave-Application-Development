@@ -80,6 +80,22 @@ async function initializeDatabase() {
     `);
     console.log('✅ Table event_roles created or exists');
 
+    // 6. Create event_applications table
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS event_applications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        event_id INT NOT NULL,
+        role_id INT NOT NULL,
+        user_id INT NOT NULL,
+        status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+        FOREIGN KEY (role_id) REFERENCES event_roles(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    console.log('✅ Table event_applications created or exists');
+
     // 6. Insert default admin if not exists
     const [admins] = await conn.query(
       "SELECT * FROM users WHERE email = 'admin@gpsphere.com'"
@@ -108,6 +124,7 @@ async function initializeDatabase() {
   } finally {
     if (conn) await conn.end();
   }
+
 }
 
 initializeDatabase();

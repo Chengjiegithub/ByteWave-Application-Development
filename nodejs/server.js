@@ -24,6 +24,11 @@ app.use(session({
   cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 hours
 }));
 
+// Force homepage.html to be the default landing page
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/homepage.html');
+});
+
 // Serve static files (CSS, JS)
 app.use(express.static('public'));
 

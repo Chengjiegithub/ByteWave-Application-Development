@@ -85,6 +85,15 @@ const login = async (req, res) => {
 
     // Find user by email
     const [users] = await conn.query('SELECT * FROM users WHERE email = ?', [email]);
+    console.log("🟩 Login Request Body:", req.body);
+    console.log("🟩 DB User Lookup Result:", users);
+
+    if (users.length > 0) {
+      console.log("🟩 Password entered:", password);
+      console.log("🟩 Stored hash:", users[0].password);
+      console.log("🟩 bcrypt.compare result:", await bcrypt.compare(password, users[0].password));
+      }
+
 
     if (users.length === 0) {
       conn.release();
@@ -121,9 +130,18 @@ const login = async (req, res) => {
     conn.release();
 
     // Send TAC via email
-    await sendTACEmail(email, tacCode);
+    const result =  await sendTACEmail(email, tacCode);
 
-    // Return message (don't send token yet - user must verify TAC)
+     // TEST MODE → Return TAC directly (no email)
+    if (result.test) {
+    return res.json({
+    message: "TAC generated (TEST MODE). No email sent.",
+    requireTAC: true,
+    tac: result.tac  // for easy testing
+  });
+}
+
+    // (Normal) Return message (don't send token yet - user must verify TAC)
     return res.json({ 
       message: 'TAC code sent to your email. Please verify to complete login.',
       requiresTAC: true
@@ -193,8 +211,33 @@ const verifyTAC = async (req, res) => {
   }
 };
 
+//LOGOUT USER
+const logout = (req, res) => {
+  try {
+    if (req.session) {
+      req.session.destroy(err => {
+        if (err) {
+          console.error("Logout error:", err);
+          return res.status(500).json({ error: "Logout failed" });
+        }
+
+        // Remove session cookie
+        res.clearCookie("connect.sid");
+        return res.json({ message: "Logged out successfully" });
+      });
+    } else {
+      return res.status(200).json({ message: "No active session" });
+    }
+  } catch (error) {
+    console.error("Logout error:", error);
+    return res.status(500).json({ error: "Logout failed" });
+  }
+};
+
+
 module.exports = {
   register,
   login,
-  verifyTAC
+  verifyTAC,
+  logout
 };

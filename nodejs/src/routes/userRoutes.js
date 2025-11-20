@@ -7,7 +7,8 @@ const { verifySession, checkRole } = require('../middleware/auth');
 const { 
   getUserProfile, 
   getAllUsers, 
-  approveUser 
+  approveUser,
+  getMyApplications 
 } = require('../controllers/userController');
 
 const router = express.Router();
@@ -20,5 +21,9 @@ router.get('/all', verifySession, checkRole(['admin']), getAllUsers);
 
 // POST /user/approve - Approve user (admin only)
 router.post('/approve', verifySession, checkRole(['admin']), approveUser);
+
+// GET /user/applications - Get my applications
+router.get('/applications', verifySession, getMyApplications);
+
 
 module.exports = router;

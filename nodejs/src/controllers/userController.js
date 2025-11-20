@@ -53,10 +53,10 @@ const approveUser = async (req, res) => {
     const { userId } = req.body;
     const conn = await pool.getConnection();
 
-    await conn.query(
-      'UPDATE users SET status = ? WHERE id = ?',
-      ['approved', userId]
-    );
+   await conn.query(
+    "UPDATE users SET status = 'approved', role = 'member' WHERE id = ?",
+    [userId]
+  );
 
     conn.release();
 
@@ -67,8 +67,39 @@ const approveUser = async (req, res) => {
   }
 };
 
+const getMyApplications = async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) return res.status(401).json({ error: 'Not logged in' });
+
+    const [rows] = await pool.query(
+      `SELECT 
+          ea.id,
+          ea.event_id,
+          ea.role_id,
+          ea.status,
+          ea.created_at,
+          r.role_name,
+          e.event_name
+       FROM event_applications ea
+       JOIN event_roles r ON ea.role_id = r.id
+       JOIN events e ON ea.event_id = e.id
+       WHERE ea.user_id = ?
+       ORDER BY ea.created_at DESC`,
+      [userId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error("getMyApplications error:", err);
+    res.status(500).json({ error: "Failed to fetch applications" });
+  }
+};
+
+
 module.exports = {
   getUserProfile,
   getAllUsers,
-  approveUser
+  approveUser,
+  getMyApplications
 };
