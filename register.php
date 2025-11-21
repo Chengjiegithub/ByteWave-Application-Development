@@ -53,8 +53,8 @@ if (isset($_POST['register'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Portal | Gerakan Pengguna Siswa UTM</title>
-    <link rel="stylesheet" href="assests/css/base.css">
-    <link rel="stylesheet" href="assests/css/register.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/register.css">
 </head>
 <body>
     <header class="header">
@@ -66,13 +66,20 @@ if (isset($_POST['register'])) {
                     <div class="subtitle">Student Portal</div>
                 </div>
             </div>
+            <div class="back-button-shell">
+            <a href="index.php" class="back-button">
+                <span class="icon">←</span>
+                <span>Back</span>
+            </a>
         </div>
+        </div>
+        
         <div class="header-divider"></div>
     </header>
     
     <div class="main-content">
         <div class="form-card">
-            <div class="form-icon">👤+</div>
+            <div class="form-icon">👤</div>
             <p class="form-title">Login or register for GPS membership</p>
             
             <div class="tabs">

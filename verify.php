@@ -66,23 +66,17 @@ if (isset($_POST['verify'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify TAC | Gerakan Pengguna Siswa UTM</title>
-    <link rel="stylesheet" href="assests/css/base.css">
-    <link rel="stylesheet" href="assests/css/verify.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/verify.css">
 </head>
 <body>
-    <div class="back-button-shell">
-        <a href="login.php" class="back-button" title="Back to Login">
-            <span class="icon">←</span>
-            <span>Back</span>
-        </a>
-    </div>
     <header class="header">
         <div class="header-top">
             <div class="logo-section">
-                <div class="logo-circle">GERAKAN PENGGUNA SISWA UTM</div>
+                <img src="assests/Official GPS Logo Coloured.png" alt="GPS Logo" class="logo-img">
                 <div class="header-text">
                     <div class="main-title">Gerakan Pengguna Siswa UTM</div>
-                    <div class="subtitle">Student Portal</div>
+                    <div class="subtitle">Student Consumer Movement</div>
                 </div>
             </div>
         </div>

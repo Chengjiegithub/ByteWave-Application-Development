@@ -7,8 +7,8 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About GPS | Gerakan Pengguna Siswa UTM</title>
-    <link rel="stylesheet" href="assests/css/base.css">
-    <link rel="stylesheet" href="assests/css/about.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/about.css">
 </head>
 <body>
     <div class="back-button-shell">
@@ -54,9 +54,7 @@ session_start();
         <p class="footer-text">© 2025 Gerakan Pengguna Siswa UTM. All rights reserved.</p>
     </footer>
     
-    <div class="chat-widget">
-        <span class="chat-icon">💬</span>
-    </div>
+    <?php include('chatbot.php'); ?>
 </body>
 </html>
 
