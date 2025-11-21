@@ -24,56 +24,16 @@ $status = strtolower($user['status'] ?? 'pending');
 <html>
 <head>
     <title>GPSphere | Student Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f7;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            height: 100vh;
-            margin: 0;
-            padding-top: 50px;
-        }
-        .container {
-            background: white;
-            padding: 40px 60px;
-            border-radius: 12px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 360px;
-        }
-        h2 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-        .status {
-            background: #fdf3cd;
-            color: #7d6608;
-            padding: 10px;
-            border-radius: 6px;
-            margin: 15px 0;
-        }
-        .approved {
-            background: #d4edda;
-            color: #155724;
-        }
-        a.logout {
-            display: inline-block;
-            margin-top: 15px;
-            background: #34495e;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 6px;
-            text-decoration: none;
-        }
-        a.logout:hover {
-            background: #2c3e50;
-        }
-    </style>
+    <link rel="stylesheet" href="assests/css/base.css">
+    <link rel="stylesheet" href="assests/css/student_dashboard.css">
 </head>
 <body>
+    <div class="back-button-shell">
+        <a href="login.php" class="back-button" title="Back to Login">
+            <span class="icon">←</span>
+            <span>Back</span>
+        </a>
+    </div>
     <div class="container">
         <h2>Welcome, <?php echo $name; ?> 👋</h2>
         <p>Your registered email: <b><?php echo $email; ?></b></p>
