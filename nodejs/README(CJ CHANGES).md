@@ -229,7 +229,7 @@ npm run dev
 
 ---
 
-## **9. Team To-Do**
+## **9. Team To-Do(Recommendation)**
 
 * UI enhancement & polishing
 * Mobile responsiveness
