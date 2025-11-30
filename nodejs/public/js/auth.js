@@ -201,7 +201,7 @@ async function handleRegister(e) {
 
     if (!AppUtils.validatePassword(password)) {
         AppUtils.showFieldError('registerPassword', 
-            'Password must be at least 8 characters with uppercase, lowercase, and number');
+            'Password must be at least 8 characters with uppercase, lowercase, number, and symbol');
         return;
     }
 
@@ -216,7 +216,8 @@ async function handleRegister(e) {
         const response = await AppUtils.apiRequest('/auth/register', 'POST', {
             name,
             email,
-            password
+            password,
+            confirm: confirmPassword
         });
 
         AppUtils.hideLoader();

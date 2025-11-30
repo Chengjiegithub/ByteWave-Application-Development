@@ -104,11 +104,12 @@ function validateEmail(email) {
 }
 
 function validatePassword(password) {
-    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
+    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 symbol
     return password.length >= 8 &&
            /[A-Z]/.test(password) &&
            /[a-z]/.test(password) &&
-           /[0-9]/.test(password);
+           /[0-9]/.test(password) &&
+           /[\W_]/.test(password);
 }
 
 function showFieldError(fieldId, message) {
