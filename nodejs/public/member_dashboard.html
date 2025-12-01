@@ -79,9 +79,9 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#profile">
+                    <a href="/profile.html">
                         <span class="icon">👤</span>
-                        <span>Profile</span>
+                        <span>My Profile</span>
                     </a>
                 </li>
             </ul>
@@ -272,7 +272,7 @@
 
         async function loadApplications() {
             try {
-                const applications = await AppUtils.apiRequest('/user/my-applications');
+                const applications = await AppUtils.apiRequest('/user/applications');
                 applicationsData = applications;
                 
                 // Update stats
@@ -323,14 +323,302 @@
             document.getElementById('applicationsList').innerHTML = html;
         }
 
-        function viewEvent(eventId) {
+        async function viewEvent(eventId) {
             const event = eventsData.find(e => e.id === eventId);
             if (!event) return;
             
-            AppUtils.showInfo(`Event details for: ${event.event_name}`);
-            // TODO: Show detailed event modal
+            // Fetch detailed event info with roles
+            try {
+                const eventDetails = await AppUtils.apiRequest(`/events/${eventId}`);
+                showEventModal(eventDetails);
+            } catch (error) {
+                AppUtils.showError('Failed to load event details');
+                console.error(error);
+            }
+        }
+
+        function showEventModal(event) {
+            const modal = document.getElementById('eventModal');
+            if (!modal) return;
+            
+            document.getElementById('modalEventName').textContent = event.event_name;
+            document.getElementById('modalEventDescription').textContent = event.description || 'No description';
+            document.getElementById('modalEventDate').textContent = AppUtils.formatDate(event.event_date);
+            document.getElementById('modalEventTime').textContent = event.event_time || 'TBA';
+            document.getElementById('modalEventLocation').textContent = event.location || 'TBA';
+            
+            // Display roles
+            const rolesHTML = event.roles && event.roles.length > 0 ? event.roles.map(role => `
+                <div class="role-card">
+                    <div class="role-info">
+                        <h4>${role.role_name}</h4>
+                        <p style="color: var(--gray); margin: 5px 0;">Available slots: ${role.slots}</p>
+                        <p style="font-size: 14px; color: var(--gray);">
+                            Approved: ${role.approvedCount || 0} | Pending: ${role.pendingCount || 0}
+                        </p>
+                    </div>
+                    <button class="btn btn-primary" onclick="applyForRole(${event.id}, ${role.id})" 
+                            ${(role.approvedCount >= role.slots) ? 'disabled' : ''}>
+                        ${(role.approvedCount >= role.slots) ? 'Full' : 'Apply'}
+                    </button>
+                </div>
+            `).join('') : '<p>No roles available</p>';
+            
+            document.getElementById('modalRolesList').innerHTML = rolesHTML;
+            modal.classList.add('active');
+        }
+
+        function closeEventModal() {
+            const modal = document.getElementById('eventModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        async function applyForRole(eventId, roleId) {
+            try {
+                AppUtils.showLoader();
+                await AppUtils.apiRequest(`/events/${eventId}/apply`, 'POST', { role_id: roleId });
+                
+                AppUtils.showSuccess('Application submitted successfully!');
+                closeEventModal();
+                await loadApplications();
+                
+            } catch (error) {
+                AppUtils.showError(error.message || 'Failed to submit application');
+            } finally {
+                AppUtils.hideLoader();
+            }
         }
     </script>
+
+    <!-- Event Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalEventName">Event Details</h2>
+                <button class="modal-close" onclick="closeEventModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="event-details">
+                    <div class="detail-item">
+                        <strong>📝 Description:</strong>
+                        <p id="modalEventDescription">-</p>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-item">
+                            <strong>📅 Date:</strong>
+                            <p id="modalEventDate">-</p>
+                        </div>
+                        <div class="detail-item">
+                            <strong>🕐 Time:</strong>
+                            <p id="modalEventTime">-</p>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <strong>📍 Location:</strong>
+                        <p id="modalEventLocation">-</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 25px;">
+                    <h3 style="margin-bottom: 15px; color: #8B2346;">Available Roles</h3>
+                    <div id="modalRolesList" class="roles-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 25px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #3B4A8C 0%, #8B2346 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .event-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+        }
+
+        .detail-item strong {
+            display: block;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .detail-item p {
+            margin: 0;
+            color: #666;
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .roles-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .role-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #D4A437;
+        }
+
+        .role-card h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .role-card button {
+            white-space: nowrap;
+        }
+
+        .role-card button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .applications-table {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .application-row {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #D4A437;
+        }
+
+        .application-row h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .application-row p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
 
     <!-- Load Chatbot -->
     <script src="/chatbot.js"></script>

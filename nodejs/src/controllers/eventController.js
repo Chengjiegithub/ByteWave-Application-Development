@@ -81,6 +81,7 @@ const getEventById = async (req, res) => {
 // Create event (admin only)
 const createEvent = async (req, res) => {
   try {
+    console.log('📅 CREATE EVENT REQUEST:', req.body);
     const { event_name, description, event_date, event_time, location, roles } = req.body;
 
     if (!event_name || !event_date) {
@@ -91,6 +92,7 @@ const createEvent = async (req, res) => {
 
     // Get creator from session
     const createdBy = req.session?.email || req.session?.userId;
+    console.log('👤 Created by:', createdBy);
 
     // 1. Insert event basic info
     const [result] = await conn.query(
@@ -103,20 +105,24 @@ const createEvent = async (req, res) => {
     const eventId = result.insertId;
 
     // 2. Insert roles into event_roles
-    if (Array.isArray(roles)) {
+    if (Array.isArray(roles) && roles.length > 0) {
+      console.log('📝 Inserting roles:', roles);
       for (const r of roles) {
         await conn.query(
           `INSERT INTO event_roles (event_id, role_name, slots)
            VALUES (?, ?, ?)`,
-          [eventId, r.role_name, r.total_needed]
+          [eventId, r.role_name, r.slots || r.total_needed]
         );
       }
+    } else {
+      console.log('⚠️ No roles provided or roles is not an array');
     }
 
     conn.release();
 
+    console.log('✅ Event created successfully with ID:', eventId);
     return res.status(201).json({
-      message: 'Event created with custom roles!',
+      message: 'Event created successfully!',
       eventId
     });
 
@@ -264,6 +270,36 @@ const cancelApplication = async (req, res) => {
   }
 };
 
+// Get ALL applications across all events (admin only)
+const getAllApplications = async (req, res) => {
+  try {
+    const conn = await pool.getConnection();
+
+    const [applications] = await conn.query(
+      `SELECT 
+        ea.id, 
+        ea.status, 
+        ea.created_at,
+        u.name AS user_name, 
+        u.email,
+        e.event_name,
+        er.role_name,
+        e.event_date
+       FROM event_applications ea
+       JOIN users u ON ea.user_id = u.id
+       JOIN event_roles er ON ea.role_id = er.id
+       JOIN events e ON er.event_id = e.id
+       ORDER BY ea.created_at DESC`
+    );
+
+    conn.release();
+    return res.json(applications);
+
+  } catch (err) {
+    console.error('getAllApplications error:', err);
+    return res.status(500).json({ error: 'Failed to fetch applications' });
+  }
+};
 
 // Admin view applications for event roles
 const getApplicationsForEvent = async (req, res) => {
@@ -376,6 +412,62 @@ const rejectApplication = async (req, res) => {
   }
 };
 
+// Update application status (admin only) - flexible endpoint for approve/reject
+const updateApplicationStatus = async (req, res) => {
+  try {
+    const applicationId = parseInt(req.params.applicationId, 10);
+    const { status } = req.body;
+
+    if (!['approved', 'rejected', 'pending'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const conn = await pool.getConnection();
+
+    // If approving, check slot availability
+    if (status === 'approved') {
+      const [apps] = await conn.query(
+        `SELECT ea.role_id, r.slots
+         FROM event_applications ea
+         JOIN event_roles r ON ea.role_id = r.id
+         WHERE ea.id = ?`,
+        [applicationId]
+      );
+
+      if (apps.length === 0) {
+        conn.release();
+        return res.status(404).json({ error: 'Application not found' });
+      }
+
+      const { role_id, slots } = apps[0];
+
+      // Count approved
+      const [count] = await conn.query(
+        'SELECT COUNT(*) AS cnt FROM event_applications WHERE role_id = ? AND status="approved"',
+        [role_id]
+      );
+
+      if (count[0].cnt >= slots) {
+        conn.release();
+        return res.status(400).json({ error: 'No slots available for this role' });
+      }
+    }
+
+    // Update status
+    await conn.query(
+      'UPDATE event_applications SET status = ? WHERE id = ?',
+      [status, applicationId]
+    );
+
+    conn.release();
+    return res.json({ message: `Application ${status} successfully` });
+
+  } catch (err) {
+    console.error('updateApplicationStatus error:', err);
+    return res.status(500).json({ error: 'Failed to update application status' });
+  }
+};
+
 
 module.exports = {
   getAllEvents,
@@ -384,8 +476,10 @@ module.exports = {
   updateEvent,
   deleteEvent,
   applyForRole,
+  getAllApplications,
   getApplicationsForEvent,
   approveApplication,
   rejectApplication,
-  cancelApplication
+  cancelApplication,
+  updateApplicationStatus
 };

@@ -14,7 +14,8 @@ const {
   getApplicationsForEvent,
   approveApplication,
   rejectApplication,
-  cancelApplication
+  cancelApplication,
+  updateApplicationStatus
 } = require('../controllers/eventController');
 
 const router = express.Router();
@@ -42,6 +43,9 @@ router.post('/applications/:id/approve', verifySession, checkRole(['admin']), ap
 
 // POST /events/applications/:id/reject - reject an application (admin only)
 router.post('/applications/:id/reject', verifySession, checkRole(['admin']), rejectApplication);
+
+// PUT /events/applications/:applicationId - update application status (admin only)
+router.put('/applications/:applicationId', verifySession, checkRole(['admin']), updateApplicationStatus);
 
 // POST /events/:id/apply - member applies for a role (member)
 router.post('/:id/apply', verifySession, applyForRole);

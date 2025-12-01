@@ -67,6 +67,40 @@ const approveUser = async (req, res) => {
   }
 };
 
+// Update user status (admin only) - for approve/reject
+const updateUserStatus = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { status } = req.body;
+    
+    if (!['approved', 'rejected', 'pending'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const conn = await pool.getConnection();
+
+    // If approving, also set role to member
+    if (status === 'approved') {
+      await conn.query(
+        "UPDATE users SET status = ?, role = 'member' WHERE id = ?",
+        [status, userId]
+      );
+    } else {
+      await conn.query(
+        "UPDATE users SET status = ? WHERE id = ?",
+        [status, userId]
+      );
+    }
+
+    conn.release();
+
+    return res.json({ message: `User ${status} successfully` });
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    return res.status(500).json({ error: 'Failed to update user status' });
+  }
+};
+
 const getMyApplications = async (req, res) => {
   try {
     const userId = req.session?.userId;
@@ -96,10 +130,63 @@ const getMyApplications = async (req, res) => {
   }
 };
 
+// Change user password
+const changePassword = async (req, res) => {
+  try {
+    const userId = req.userId; // From verifySession middleware
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current and new password required' });
+    }
+
+    // Password strength validation
+    const bcrypt = require('bcryptjs');
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({ 
+        error: 'Password must be at least 8 characters and include uppercase, lowercase, number, and symbol' 
+      });
+    }
+
+    const conn = await pool.getConnection();
+
+    // Get current user
+    const [users] = await conn.query('SELECT password FROM users WHERE id = ?', [userId]);
+    
+    if (users.length === 0) {
+      conn.release();
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Verify current password
+    const isValid = await bcrypt.compare(currentPassword, users[0].password);
+    if (!isValid) {
+      conn.release();
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await conn.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+
+    conn.release();
+
+    return res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    return res.status(500).json({ error: 'Failed to change password' });
+  }
+};
+
 
 module.exports = {
   getUserProfile,
   getAllUsers,
   approveUser,
-  getMyApplications
+  updateUserStatus,
+  getMyApplications,
+  changePassword
 };

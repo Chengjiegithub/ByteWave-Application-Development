@@ -109,13 +109,13 @@ const login = async (req, res) => {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    // Check if account is approved (TEMPORARILY DISABLED FOR TESTING)
-    // if (user.status !== 'approved') {
-    //   conn.release();
-    //   return res.status(403).json({ 
-    //     error: 'Your account is pending admin approval. Please wait.' 
-    //   });
-    // }
+    // Check if account is approved
+    if (user.status !== 'approved') {
+      conn.release();
+      return res.status(403).json({ 
+        error: 'Your account is pending admin approval. Please contact the administrator.' 
+      });
+    }
 
     // Generate 6-digit TAC code
     const tacCode = Math.floor(100000 + Math.random() * 900000);
