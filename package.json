@@ -1,0 +1,27 @@
+{
+  "name": "gpsphere",
+  "version": "1.0.0",
+  "description": "GPSphere - GPS UTM Event Management System",
+  "private": true,
+  "scripts": {
+    "install": "cd GSphere && npm install",
+    "start": "cd GSphere && npm start",
+    "dev": "cd GSphere && npm run dev",
+    "test": "cd GSphere && npm test",
+    "init-db": "cd GSphere && node scripts/initDb.js"
+  },
+  "keywords": [
+    "gpsphere",
+    "gps-utm",
+    "event-management",
+    "nodejs",
+    "express"
+  ],
+  "author": "GPS UTM - ByteWave Development Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  }
+}
+

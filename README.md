@@ -1,152 +1,347 @@
-# ByteWave Website Development
-Here is the Github for the development of GPSphere. 
-GPSphere is a digital platform for the Gerakan Pengguna Siswa (Students’ Consumer Movement) at UTM Johor, built using HTML, CSS, JavaScript, PHP, and MySQL (via XAMPP).
+# GPSphere - GPS UTM Event Management System
 
-# Important 
-My MySQL port is 3307 due to a local conflict.
-If your XAMPP MySQL uses the default 3306, update the port number in:
-config.php
-$port = 3307;
+A modern digital platform for the **Gerakan Pengguna Siswa (GPS)** - Student Consumer Movement at Universiti Teknologi Malaysia (UTM) Johor.
 
-Also rename the folder in htdocs to name GPSphere
+## 🌟 Overview
 
-Change 3307 → 3306 (for normal  3306 port)
+GPSphere is a comprehensive event management system that enables students to register, become members, and participate in GPS UTM events. The platform features role-based access control, two-factor authentication, and an AI-powered chatbot assistant.
 
+## 🚀 Features
 
-# Steps on how to start
-1. Open XAMPP and start APACHE and MySQL
-2. Browse http://localhost/GPSphere/ to get to the Index of/GPSphere
-3. Also browse http://localhost/phpmyadmin for the database.
-4. Run create_database.php. It will create
-    gpsphere_db
-    users
-    events
-    event_roles
-    event_requests
+### Authentication & Security
+- **Student Registration** with secure password hashing (bcrypt)
+- **Two-Factor Authentication (TAC)** - Time Authentication Code system
+- **TAC Test Mode** - For local development (TAC appears on screen)
+- **TAC Gmail Mode** - Production mode (TAC sent via email)
+- **Session Management** - Secure user sessions
 
-    And a default Admin account
-    Email: admin@gpsphere.com (not existed email. you can change by yourself at create_database.php part // 5️⃣ Optional: Add an admin account)
-    Password: Admin123! (also can change)
+### User Roles
+- **Student** - Can register and view basic information
+- **Member** - Approved students who can participate in events
+- **Admin** - Full system access, user approval, event management
 
-5. Check the databse at the phpmyadmin. You should have a gpsphere_db
-6. Follow the steps at for the app password for TAC 2FA email
-7. After finish follow, you can start trying the website.
+### Event Management
+- Create, update, and manage events
+- Role-based event participation (Director, Secretary, Technical Crew, Helper, etc.)
+- Event application and approval system
+- Real-time event information
 
-For now I have acheive:
-Student registration with secure password hashing (bcrypt)
-Login system with Two-Factor Authentication (TAC)
-TAC Test Mode (TAC appears directly on the webpage for local testing)
-TAC Gmail Mode (TAC sent via PHPMailer using Gmail App Password)
+### AI Chatbot Assistant
+- Interactive chat interface with message history
+- Context-aware responses
+- Real-time event data integration
+- Suggestion buttons for quick responses
+- Typing indicators and smooth animations
 
-Role-based dashboards: Student, Member, Admin
+### Email Notifications
+- Automated welcome emails
+- TAC verification codes
+- Account approval notifications
+- Event updates
 
-Student can register to the website.
-After being the member registration approve by the admin, they become member
+## 📁 Project Structure
 
-Member can request to join the specific position of an events and need approval from the admin
+```
+GSphere/
+├── package.json              # Root package.json (convenience scripts)
+├── GSphere/                  # Main application directory
+│   ├── docs/                 # Documentation files
+│   │   ├── chatbot-features.md
+│   │   ├── architecture.md
+│   │   ├── api-testing-guide.sh
+│   │   ├── setup/
+│   │   │   ├── email-setup.md
+│   │   │   └── step-by-step-guide.md
+│   │   └── ...
+│   ├── public/               # Frontend files
+│   │   ├── css/             # Stylesheets
+│   │   ├── images/          # Logo and images
+│   │   ├── js/              # Client-side JavaScript
+│   │   ├── *.html           # HTML pages
+│   │   └── chatbot_widget.html
+│   ├── scripts/             # Utility scripts
+│   │   └── initDb.js        # Database initialization
+│   ├── src/                 # Backend source code
+│   │   ├── config/          # Configuration files
+│   │   ├── controllers/     # Route controllers
+│   │   ├── middleware/     # Express middleware
+│   │   ├── routes/          # API routes
+│   │   └── utils/           # Utility functions
+│   ├── server.js            # Main server file
+│   └── package.json         # Dependencies
+└── README.md                # This file
+```
 
-Admin can approve or reject student applications for member and event crew
-Admin can also create new events with specific crews needed.
+## 🛠️ Technology Stack
 
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **MySQL** - Database
+- **bcryptjs** - Password hashing
+- **nodemailer** - Email sending
+- **express-session** - Session management
 
+### Frontend
+- **HTML5** - Structure
+- **CSS3** - Styling
+- **Vanilla JavaScript** - Client-side logic
+- **Fetch API** - HTTP requests
 
-# How to Generate a Gmail App Password for PHPMailer
-App Password is needed by the phpmailer to get to work. Please follow it
+## 📋 Prerequisites
 
-Step 1 — Turn On 2-Step Verification
-Go to 👉 https://myaccount.google.com/
-On the left menu, click “Security.”
-Scroll to “Signing in to Google.”
+- **Node.js** (v14 or higher)
+- **MySQL** (v5.7 or higher) or **XAMPP** with MySQL
+- **Gmail account** (for email notifications)
+- **npm** or **yarn** (package manager)
 
-Click “2-Step Verification.”
-Follow the prompts to turn it on (you’ll verify using your phone).
-🔸 This step is required before you can create an App Password.
+## 🔧 Installation & Setup
 
-✅ Step 2 — Open “App Passwords”
-After enabling 2-Step Verification, go back to:
-👉 https://myaccount.google.com/apppasswords
-Sign in again if prompted.
-Under “Select app,” choose Mail.
-Under “Select device,” choose Other (Custom name) and type GPSphere.
-Click Generate.
+### 1. Clone the Repository
 
-✅ Step 3 — Copy the 16-Character App Password
-A yellow box will appear with something like:
-abcd efgh ijkl mnop
-That’s your App Password (ignore the spaces).
+```bash
+git clone <repository-url>
+cd GSphere
+```
 
-✅ Step 4 — Use It in PHPMailer
-In your login.php, replace:
-$mail->Username = 'YOUR_GMAIL@gmail.com';
-$mail->Password = 'YOUR_APP_PASSWORD';
-with your actual Gmail and the App Password (without spaces).
+### 2. Install Dependencies
 
-Example:
-$mail->Username = 'chengjieutm@gmail.com';
-$mail->Password = 'abcdijklmnopqrst';
+**Option A: From root directory (recommended)**
+```bash
+npm install
+```
 
-✅ Step 5 — Save and Test
-Save login.php
-Run XAMPP → start Apache + MySQL
-Go to http://localhost/GPSphere/login.php
-Login and check your Gmail inbox — you should receive the TAC email 🎉
+**Option B: From nodejs directory**
+```bash
+cd GSphere
+npm install
+```
 
+### 3. Database Configuration
 
+#### Option A: Using XAMPP (Legacy PHP Setup)
+1. Start XAMPP and ensure Apache and MySQL are running
+2. Access phpMyAdmin at `http://localhost/phpmyadmin`
+3. Create database `gpsphere_db` or run the initialization script
 
-# About 2FA TAC(Please watch the How to Generate a Gmail App Password for PHPMailer first)
+#### Option B: Using Node.js (Recommended)
+1. Configure database connection in `.env` file (see below)
+2. Run the database initialization script:
+   ```bash
+   # From root directory
+   npm run init-db
+   
+   # Or from GSphere directory
+   cd GSphere
+   node scripts/initDb.js
+   ```
 
-🔐 Two-Factor Authentication (TAC System)
-🧪 Local Test Mode (Default)
-During development, GPSphere runs in Test Mode for TAC.
-This means the generated 6-digit code is shown directly on the screen, instead of being sent via email.
+### 4. Environment Variables
 
-Example output on login:
-✅ Test Mode: Your TAC is 451344 (expires 2025-11-05 06:54:28)
-This allows teammates to test login and TAC verification without needing Gmail setup.
+Create a `.env` file in the `nodejs/` directory:
 
-How Test Mode Works
-In login.php, you’ll find:
-// ---- TEST MODE ----
-// Comment out the real email sending during local testing
-// $mail->send();
-// $success = "A verification code (TAC) has been sent to your email.";
-// $redirect = true;
+```env
+# Database Configuration
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=gpsphere_db
+DB_PORT=3306
 
-// Instead, just show TAC on screen for local testing
-$success = "✅ Test Mode: Your TAC is <b>$tac</b> (expires $expiry)";
-$redirect = true;
+# Email Configuration (Gmail)
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASSWORD=your_app_password
 
-To let it works with gmail:
+# TAC Configuration
+TAC_TEST_MODE=false
 
-Replace this part:
-$mail->Username = 'YOUR_GMAIL@gmail.com';
-$mail->Password = 'YOUR_APP_PASSWORD';
+# Session Secret
+SESSION_SECRET=your_secret_key_here
+```
 
-Example:
-$mail->Username = 'chengjieutm@gmail.com';
-$mail->Password = 'abcdijklmnopqrst';
+**Important Notes:**
+- If using XAMPP with non-default MySQL port, update `DB_PORT` (e.g., `3307`)
+- For Gmail, you need to generate an **App Password** (see Email Setup below)
 
-Then change these lines:
-// ---- TEST MODE ----
-// Comment out the real email sending during local testing
-// $mail->send();
-// $success = "A verification code (TAC) has been sent to your email.";
-// $redirect = true;
+### 5. Gmail App Password Setup
 
-// Instead, just show TAC on screen for local testing
-$success = "✅ Test Mode: Your TAC is <b>$tac</b> (expires $expiry)";
-$redirect = true;
-$mail->send();
-$success = "A verification code (TAC) has been sent to your email.";
-$redirect = true;
+To enable email notifications, you need a Gmail App Password:
 
-to this:
-$mail->send();
-$success = "A verification code (TAC) has been sent to your email.";
-$redirect = true;
+1. **Enable 2-Step Verification**
+   - Go to [Google Account Security](https://myaccount.google.com/)
+   - Enable 2-Step Verification
 
+2. **Generate App Password**
+   - Go to [App Passwords](https://myaccount.google.com/apppasswords)
+   - Select "Mail" and "Other (Custom name)" → Enter "GPSphere"
+   - Copy the 16-character password (ignore spaces)
+   - Use this password in your `.env` file as `EMAIL_PASSWORD`
 
-Step 4 — Restart & Test
-REstart Apache & MySQL in XAMPP.
-Visit 👉 http://localhost/GPSphere/login.php
-Login → check your Gmail inbox for the TAC email 🎉
+### 6. Start the Server
+
+**From root directory:**
+```bash
+# Development mode (with auto-reload)
+npm run dev
+
+# Production mode
+npm start
+```
+
+**Or from GSphere directory:**
+```bash
+cd GSphere
+npm run dev  # Development mode
+npm start    # Production mode
+```
+
+The server will start on `http://localhost:3000`
+
+## 🎯 Usage
+
+### Accessing the Application
+
+- **Homepage**: `http://localhost:3000/homepage.html`
+- **Login/Register**: `http://localhost:3000/login_register.html`
+- **Admin Dashboard**: `http://localhost:3000/admin_dashboard.html` (Admin only)
+- **Member Dashboard**: `http://localhost:3000/member_dashboard.html` (Members)
+- **Student Dashboard**: `http://localhost:3000/student_dashboard.html` (Students)
+
+### Default Admin Account
+
+After database initialization:
+- **Email**: `admin@gpsphere.com`
+- **Password**: `Admin123!`
+
+⚠️ **Change these credentials in production!**
+
+## 📡 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login (sends TAC)
+- `POST /api/auth/verify-tac` - Verify TAC code
+- `POST /api/auth/forgot-password` - Request password reset code
+- `POST /api/auth/reset-password` - Reset password with code
+- `POST /api/auth/logout` - Logout
+
+### User Management
+- `GET /api/user/profile` - Get user profile
+- `GET /api/user/all` - Get all users (admin only)
+- `POST /api/user/approve` - Approve user (admin only)
+
+### Event Management
+- `GET /api/events` - Get all events
+- `GET /api/events/:id` - Get event details
+- `POST /api/events` - Create event (admin only)
+- `PUT /api/events/:id` - Update event (admin only)
+- `DELETE /api/events/:id` - Delete event (admin only)
+
+### Chatbot
+- `POST /api/chatbot` - Send message to chatbot
+
+## 🔐 Security Features
+
+- **Password Requirements**: 8+ characters, uppercase, lowercase, number, symbol
+- **Bcrypt Hashing**: Secure password storage
+- **TAC 2FA**: Time-based authentication codes
+- **Session Management**: Secure session handling
+- **Role-Based Access Control**: Admin, Member, Student permissions
+- **SQL Injection Protection**: Parameterized queries
+
+## 🤖 Chatbot Features
+
+The AI chatbot assistant provides:
+- Real-time conversation with message history
+- Context-aware responses
+- Database integration for live event data
+- Suggestion buttons for quick interactions
+- Support for multiple topics:
+  - GPS UTM information
+  - Registration process
+  - Login and TAC system
+  - Events and activities
+  - Contact information
+
+See `nodejs/docs/chatbot-features.md` for detailed documentation.
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the `nodejs/docs/` directory:
+
+- `architecture.md` - System architecture overview
+- `api-testing-guide.sh` - API testing instructions
+- `setup/email-setup.md` - Email configuration guide
+- `chatbot-features.md` - Chatbot feature documentation
+- `migration/migration-guide.md` - Migration from PHP to Node.js
+- `setup/step-by-step-guide.md` - Detailed setup instructions
+
+## 🧪 Testing
+
+```bash
+# Run tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 Development Notes
+
+### TAC Test Mode
+
+For local development, TAC codes appear on screen instead of being sent via email. To enable email mode:
+
+1. Set `TAC_TEST_MODE=false` in `.env`
+2. Configure Gmail App Password (see Email Setup)
+3. Restart the server
+
+### Database Port Configuration
+
+If your MySQL uses a non-default port (e.g., 3307), update the `DB_PORT` in `.env` file.
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Error**
+   - Check MySQL is running
+   - Verify credentials in `.env`
+   - Ensure database exists
+
+2. **Email Not Sending**
+   - Verify Gmail App Password is correct
+   - Check 2-Step Verification is enabled
+   - Ensure `TAC_TEST_MODE=false` in production
+
+3. **Port Already in Use**
+   - Change port in `server.js` or use environment variable
+   - Kill process using the port
+
+## 📄 License
+
+This project is developed for GPS UTM (Universiti Teknologi Malaysia).
+
+## 👥 Team
+
+- **Development Team**: ByteWave Application Development
+- **Organization**: GPS UTM - Student Consumer Movement
+
+## 🙏 Acknowledgments
+
+- GPS UTM for the opportunity to develop this platform
+- All contributors and team members
+
+---
+
+**GPS UTM** - Empowering students to become smart, ethical, and responsible consumers.
+
+For more information, visit the [GPS UTM documentation](nodejs/docs/).
