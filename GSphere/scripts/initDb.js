@@ -63,6 +63,13 @@ async function initializeDatabase() {
     `);
     console.log('✅ Reset columns ensured on users table');
 
+    // Ensure profile_picture column exists
+    await conn.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS profile_picture VARCHAR(255) DEFAULT NULL
+    `);
+    console.log('✅ Profile picture column ensured on users table');
+
     // 4. Create events table
     await conn.query(`
       CREATE TABLE IF NOT EXISTS events (
