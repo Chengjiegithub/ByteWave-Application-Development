@@ -231,9 +231,10 @@
 
         .role-input-group {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 2fr 1fr auto;
             gap: 10px;
             margin-bottom: 10px;
+            align-items: center;
         }
 
         .modal-actions {
@@ -277,7 +278,7 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <img src="/images/gps-utm-logo.png" alt="GPS UTM Logo" style="height: 65px; width: auto; margin-bottom: 15px; filter: brightness(0) invert(1);">
-                <h2>⚡ GPS UTM Admin</h2>
+                <h2>GPS UTM Admin</h2>
                 <p style="font-size: 10px; opacity: 0.9; margin: 8px 0; color: rgba(255,255,255,0.8);">Student Consumer Movement</p>
                 <p id="userRole">Administrator</p>
             </div>
@@ -339,15 +340,18 @@
             <!-- Header -->
             <header class="dashboard-header">
                 <div>
-                    <h1>🛡️ Admin Control Panel</h1>
-                    <span class="admin-header-badge">⚡ Full Access</span>
+                    <h1>Admin Control Panel</h1>
+                    <span class="admin-header-badge">Full Access</span>
                 </div>
                 <div class="header-actions">
                     <button class="btn btn-primary" onclick="showCreateEventModal()">
-                        ➕ Create Event
+                        Create Event
                     </button>
                     <div class="user-info">
-                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-avatar" id="userAvatar">
+                            <img id="userAvatarImg" src="" alt="Profile" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            <span id="userAvatarText">A</span>
+                        </div>
                         <div>
                             <div style="font-weight: 600;" id="userName">Loading...</div>
                             <div style="font-size: 12px; color: var(--gray);" id="userEmail"></div>
@@ -416,19 +420,19 @@
                 <!-- User Management -->
                 <div class="card" id="users">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                        <h2>👥 User Management</h2>
+                        <h2>User Management</h2>
                         <div style="display: flex; gap: 10px;">
                             <select id="userFilter" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);" onchange="filterUsers()">
                                 <option value="all">All Status</option>
-                                <option value="pending">⏳ Pending</option>
-                                <option value="approved">✅ Approved</option>
-                                <option value="rejected">❌ Rejected</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
                             </select>
                             <select id="roleFilter" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);" onchange="filterUsers()">
                                 <option value="all">All Roles</option>
-                                <option value="admin">⚡ Admin</option>
-                                <option value="member">👤 Member</option>
-                                <option value="student">🎓 Student</option>
+                                <option value="admin">Admin</option>
+                                <option value="member">Member</option>
+                                <option value="student">Student</option>
                             </select>
                         </div>
                     </div>
@@ -439,7 +443,7 @@
 
                 <!-- Applications -->
                 <div class="card" id="applications">
-                    <h2 style="margin-bottom: 20px;">📝 Event Applications</h2>
+                    <h2 style="margin-bottom: 20px;">Event Applications</h2>
                     <div id="applicationsList">
                         <div class="spinner"></div>
                     </div>
@@ -480,16 +484,16 @@
                         <p style="color: var(--gray); margin-bottom: 20px;">Advanced system settings and controls. Use with caution.</p>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                             <button class="btn btn-secondary" onclick="AppUtils.showInfo('Export feature coming soon!')">
-                                📊 Export Data
+                                Export Data
                             </button>
                             <button class="btn btn-secondary" onclick="AppUtils.showInfo('Backup feature coming soon!')">
-                                💾 Backup Database
+                                Backup Database
                             </button>
                             <button class="btn btn-secondary" onclick="AppUtils.showInfo('Email settings coming soon!')">
-                                📧 Email Settings
+                                Email Settings
                             </button>
                             <button class="btn btn-secondary" onclick="AppUtils.showInfo('System logs feature coming soon!')">
-                                📋 View System Logs
+                                View System Logs
                             </button>
                         </div>
                     </div>
@@ -561,6 +565,75 @@
     </div>
 
 
+    <!-- Edit Event Modal -->
+    <div id="editEventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Event</h2>
+                <button class="modal-close" onclick="closeEditEventModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="editEventForm">
+                    <input type="hidden" id="editEventId" name="eventId">
+                    
+                    <div class="form-group">
+                        <label>Event Name *</label>
+                        <input type="text" id="editEventName" name="event_name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <textarea id="editEventDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Event Date *</label>
+                            <input type="date" id="editEventDate" name="event_date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Event Time *</label>
+                            <input type="time" id="editEventTime" name="event_time" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Location *</label>
+                        <input type="text" id="editEventLocation" name="location" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="editEventStatus" name="status">
+                            <option value="ongoing">Ongoing</option>
+                            <option value="finished">Finished</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Roles</label>
+                        <div id="editRolesContainer">
+                            <!-- Roles will be dynamically added here -->
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addEditRoleInput()" style="margin-top: 10px;">
+                            ➕ Add Role
+                        </button>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditEventModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            Update Event
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- ADMIN FEEDBACK MODAL -->
 <div id="adminFeedbackModal" class="modal">
     <div class="modal-content" style="max-width: 700px;">
@@ -621,7 +694,19 @@
                 
                 document.getElementById('userName').textContent = user.name;
                 document.getElementById('userEmail').textContent = user.email;
-                document.getElementById('userAvatar').textContent = AppUtils.getInitials(user.name);
+                
+                // Update avatar - show image if available, otherwise show initials
+                const avatarImg = document.getElementById('userAvatarImg');
+                const avatarText = document.getElementById('userAvatarText');
+                if (user.profile_picture) {
+                    avatarImg.src = user.profile_picture;
+                    avatarImg.style.display = 'block';
+                    avatarText.style.display = 'none';
+                } else {
+                    avatarImg.style.display = 'none';
+                    avatarText.style.display = 'block';
+                    avatarText.textContent = AppUtils.getInitials(user.name);
+                }
                 
             } catch (error) {
                 AppUtils.showError('Failed to load profile');
@@ -688,15 +773,12 @@
                         <div class="event-title">${event.event_name}</div>
                         <div class="event-meta">
                             <div class="event-meta-item">
-                                <span>📍</span>
                                 <span>${event.location || 'TBA'}</span>
                             </div>
                             <div class="event-meta-item">
-                                <span>📅</span>
                                 <span>${AppUtils.formatDate(event.event_date)}</span>
                             </div>
                             <div class="event-meta-item">
-                                <span>🕐</span>
                                 <span>${event.event_time || 'TBA'}</span>
                             </div>
                         </div>
@@ -705,26 +787,34 @@
                         ${event.roles && event.roles.length > 0 ? `
                             <div class="event-roles">
                                 <h4>Roles:</h4>
-                                ${event.roles.map(role => `
+                                ${event.roles.map(role => {
+                                    const slotsLeft = (role.slots || 0) - (role.approvedCount || 0);
+                                    const isFull = slotsLeft <= 0;
+                                    return `
                                     <div class="role-item">
                                         <span class="role-name">${role.role_name}</span>
-                                        <span class="role-slots">${role.slots} slots</span>
+                                        <span class="role-slots" style="color: ${isFull ? '#dc3545' : '#28a745'};">
+                                            ${isFull ? 'Full' : `${slotsLeft} left`} (${role.approvedCount || 0}/${role.slots} approved, ${role.pendingCount || 0} pending)
+                                        </span>
                                     </div>
-                                `).join('')}
+                                `;
+                                }).join('')}
                             </div>
                         ` : ''}
                         
                         <div class="event-actions">
+                            <button class="btn btn-primary btn-sm"
+                                onclick="editEvent(${event.id})">
+                                Edit
+                            </button>
                             <button class="btn btn-secondary btn-sm"
                                 onclick="viewEventFeedback(${event.id})">
-                                💬 Feedback
+                                Feedback
                             </button>
-
-                        <button class="btn btn-danger btn-sm"
+                            <button class="btn btn-danger btn-sm"
                                 onclick="deleteEvent(${event.id})">
                                 Delete
                             </button> 
-
                         </div>
                     </div>
                 </div>
@@ -804,26 +894,33 @@
                                     <td>${user.email}</td>
                                     <td>
                                         <span class="badge badge-${user.role === 'admin' ? 'danger' : user.role === 'member' ? 'primary' : 'secondary'}">
-                                            ${user.role === 'admin' ? '⚡ ' : user.role === 'member' ? '👤 ' : '🎓 '}${user.role}
+                                            ${user.role}
                                         </span>
                                     </td>
                                     <td>
                                         <span class="badge badge-${user.status === 'approved' ? 'success' : user.status === 'pending' ? 'warning' : 'danger'}">
-                                            ${user.status === 'pending' ? '⏳ ' : user.status === 'approved' ? '✅ ' : '❌ '}${user.status}
+                                            ${user.status}
                                         </span>
                                     </td>
                                     <td>${AppUtils.formatDate(user.created_at)}</td>
                                     <td>
-                                        ${user.status === 'pending' ? `
-                                            <button class="btn btn-success btn-sm" onclick="updateUserStatus(${user.id}, 'approved')" title="Approve User" style="padding: 6px 12px;">
-                                                ✓ Approve
+                                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                            ${user.status === 'pending' ? `
+                                                <button class="btn btn-success btn-sm" onclick="updateUserStatus(${user.id}, 'approved')" title="Approve User" style="padding: 6px 12px;">
+                                                    Approve
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" onclick="updateUserStatus(${user.id}, 'rejected')" title="Reject User" style="padding: 6px 12px;">
+                                                    Reject
+                                                </button>
+                                            ` : `
+                                                <button class="btn btn-secondary btn-sm" onclick="updateUserStatus(${user.id}, 'pending')" title="Reset to Pending" style="padding: 6px 12px;">
+                                                    Reset
+                                                </button>
+                                            `}
+                                            <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id}, '${user.name}')" title="Delete User" style="padding: 6px 12px;">
+                                                Delete
                                             </button>
-                                            <button class="btn btn-danger btn-sm" onclick="updateUserStatus(${user.id}, 'rejected')" title="Reject User" style="padding: 6px 12px;">
-                                                ✗ Reject
-                                            </button>
-                                        ` : `
-                                            <span style="color: var(--gray); font-size: 13px; font-style: italic;">${user.status}</span>
-                                        `}
+                                        </div>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -917,6 +1014,20 @@
                                             <button class="btn btn-danger btn-sm" onclick="updateApplicationStatus(${app.id}, 'rejected')">
                                                 Reject
                                             </button>
+                                        ` : app.status === 'rejected' ? `
+                                            <button class="btn btn-primary btn-sm" onclick="updateApplicationStatus(${app.id}, 'pending')" title="Reinstate Application">
+                                                Reinstate
+                                            </button>
+                                            <button class="btn btn-success btn-sm" onclick="updateApplicationStatus(${app.id}, 'approved')" title="Approve Application">
+                                                Approve
+                                            </button>
+                                        ` : app.status === 'approved' ? `
+                                            <button class="btn btn-warning btn-sm" onclick="updateApplicationStatus(${app.id}, 'pending')" title="Reset to Pending">
+                                                Reset
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onclick="updateApplicationStatus(${app.id}, 'rejected')" title="Reject Application">
+                                                Reject
+                                            </button>
                                         ` : `
                                             <button class="btn btn-secondary btn-sm" disabled>
                                                 ${app.status}
@@ -1008,6 +1119,139 @@
             }
         }
 
+        async function editEvent(eventId) {
+            try {
+                AppUtils.showLoader();
+                
+                // Fetch event details
+                const event = await AppUtils.apiRequest(`/events/${eventId}`);
+                
+                // Populate edit form
+                document.getElementById('editEventId').value = event.id;
+                document.getElementById('editEventName').value = event.event_name;
+                document.getElementById('editEventDescription').value = event.description || '';
+                
+                // Format date for input (YYYY-MM-DD)
+                const eventDate = new Date(event.event_date);
+                const formattedDate = eventDate.toISOString().split('T')[0];
+                document.getElementById('editEventDate').value = formattedDate;
+                
+                // Format time for input (HH:MM)
+                let formattedTime = '';
+                if (event.event_time) {
+                    const timeParts = event.event_time.split(':');
+                    formattedTime = `${timeParts[0]}:${timeParts[1]}`;
+                }
+                document.getElementById('editEventTime').value = formattedTime;
+                
+                document.getElementById('editEventLocation').value = event.location || '';
+                document.getElementById('editEventStatus').value = event.status || 'ongoing';
+                
+                // Populate roles
+                const rolesContainer = document.getElementById('editRolesContainer');
+                rolesContainer.innerHTML = '';
+                
+                if (event.roles && event.roles.length > 0) {
+                    event.roles.forEach((role) => {
+                        const roleGroup = document.createElement('div');
+                        roleGroup.className = 'role-input-group';
+                        roleGroup.setAttribute('data-role-id', role.id || '');
+                        roleGroup.innerHTML = `
+                            <input type="text" placeholder="Role Name" class="edit-role-name" value="${role.role_name}" required>
+                            <input type="number" placeholder="Slots" class="edit-role-slots" value="${role.slots}" min="1" required>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeEditRoleInput(this)" style="padding: 5px 10px;">×</button>
+                        `;
+                        rolesContainer.appendChild(roleGroup);
+                    });
+                } else {
+                    // Add one empty role input
+                    addEditRoleInput();
+                }
+                
+                // Show edit modal
+                document.getElementById('editEventModal').classList.add('active');
+                
+            } catch (error) {
+                AppUtils.showError(error.message || 'Failed to load event details');
+                console.error(error);
+            } finally {
+                AppUtils.hideLoader();
+            }
+        }
+
+        function closeEditEventModal() {
+            document.getElementById('editEventModal').classList.remove('active');
+            document.getElementById('editEventForm').reset();
+            document.getElementById('editRolesContainer').innerHTML = '';
+        }
+
+        function addEditRoleInput() {
+            const container = document.getElementById('editRolesContainer');
+            const roleGroup = document.createElement('div');
+            roleGroup.className = 'role-input-group';
+            roleGroup.setAttribute('data-role-id', ''); // New role, no ID
+            roleGroup.innerHTML = `
+                <input type="text" placeholder="Role Name" class="edit-role-name" required>
+                <input type="number" placeholder="Slots" class="edit-role-slots" min="1" required>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeEditRoleInput(this)" style="padding: 5px 10px;">×</button>
+            `;
+            container.appendChild(roleGroup);
+        }
+
+        function removeEditRoleInput(button) {
+            button.parentElement.remove();
+        }
+
+        // Handle edit event form submission
+        document.getElementById('editEventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const eventId = formData.get('eventId');
+            
+            const eventData = {
+                event_name: formData.get('event_name'),
+                description: formData.get('description'),
+                event_date: formData.get('event_date'),
+                event_time: formData.get('event_time'),
+                location: formData.get('location'),
+                status: formData.get('status') || 'ongoing',
+                roles: []
+            };
+            
+            // Collect roles
+            const roleInputs = document.querySelectorAll('#editRolesContainer .role-input-group');
+            roleInputs.forEach((group) => {
+                const roleId = group.getAttribute('data-role-id');
+                const roleName = group.querySelector('.edit-role-name')?.value;
+                const roleSlots = group.querySelector('.edit-role-slots')?.value;
+                
+                if (roleName && roleSlots) {
+                    eventData.roles.push({
+                        id: roleId || null, // Include id if it's an existing role
+                        role_name: roleName.trim(),
+                        slots: parseInt(roleSlots)
+                    });
+                }
+            });
+            
+            try {
+                AppUtils.showLoader();
+                
+                await AppUtils.apiRequest(`/events/${eventId}`, 'PUT', eventData);
+                
+                AppUtils.showSuccess('Event updated successfully!');
+                closeEditEventModal();
+                await loadEvents();
+                await loadStats();
+                
+            } catch (error) {
+                AppUtils.showError(error.message || 'Failed to update event');
+            } finally {
+                AppUtils.hideLoader();
+            }
+        });
+
         async function deleteEvent(eventId) {
             if (!confirm('Are you sure you want to delete this event?')) return;
             
@@ -1036,6 +1280,26 @@
             }
         }
 
+        async function deleteUser(userId, userName) {
+            if (!confirm(`Are you sure you want to delete user "${userName}"?\n\nThis action cannot be undone and will permanently remove:\n- User account\n- All event applications\n- All event feedback\n- Profile picture\n\nThis action is irreversible!`)) {
+                return;
+            }
+            
+            try {
+                AppUtils.showLoader();
+                await AppUtils.apiRequest(`/user/${userId}`, 'DELETE');
+                
+                AppUtils.showSuccess(`User "${userName}" deleted successfully`);
+                await loadUsers();
+                await loadStats();
+                
+            } catch (error) {
+                AppUtils.showError(error.message || 'Failed to delete user');
+            } finally {
+                AppUtils.hideLoader();
+            }
+        }
+
         async function updateApplicationStatus(applicationId, status) {
             try {
                 await AppUtils.apiRequest(`/events/applications/${applicationId}`, 'PUT', { status });
@@ -1050,55 +1314,69 @@
         }
 
         async function viewEventFeedback(eventId) {
-    try {
-        AppUtils.showLoader();
+            if (!eventId) {
+                AppUtils.showError('Invalid event ID');
+                return;
+            }
+            
+            try {
+                AppUtils.showLoader();
+                console.log('Loading feedback for event:', eventId);
 
-        const data = await AppUtils.apiRequest(
-            `/events/${eventId}/feedback`
-        );
+                const data = await AppUtils.apiRequest(
+                    `/events/${eventId}/feedback`
+                );
 
-        document.getElementById('avgRating').textContent =
-             data.averageRating ? data.averageRating.toFixed(1) : '0.0';
+                console.log('Feedback data received:', data);
 
-        document.getElementById('totalFeedback').textContent =
-            data.totalFeedback;
+                // Update average rating
+                const avgRating = data.averageRating ? parseFloat(data.averageRating) : 0;
+                document.getElementById('avgRating').textContent = avgRating.toFixed(1);
 
-        if (!data.feedback || data.feedback.length === 0) {
-            document.getElementById('feedbackList').innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">💬</div>
-                    <h3>No Feedback Yet</h3>
-                    <p>No members have submitted feedback for this event</p>
-                </div>
-            `;
-        } else {
-            document.getElementById('feedbackList').innerHTML =
-                data.feedback.map(f => `
-                    <div class="feedback-item">
-                        <div class="feedback-header">
-                            <strong>${f.name}</strong>
-                            <span class="feedback-rating">
-                                ${'★'.repeat(f.rating)}${'☆'.repeat(5 - f.rating)}
-                            </span>
+                // Update total feedback count
+                document.getElementById('totalFeedback').textContent = data.totalFeedback || 0;
+
+                // Display feedback list
+                if (!data.feedback || data.feedback.length === 0) {
+                    document.getElementById('feedbackList').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">💬</div>
+                            <h3>No Feedback Yet</h3>
+                            <p>No members have submitted feedback for this event</p>
                         </div>
-                        <p>${f.comment || '<em>No comment</em>'}</p>
-                        <small>${AppUtils.formatDate(f.created_at)}</small>
-                    </div>
-                `).join('');
+                    `;
+                } else {
+                    document.getElementById('feedbackList').innerHTML =
+                        data.feedback.map(f => `
+                            <div class="feedback-item">
+                                <div class="feedback-header">
+                                    <strong>${f.name || 'Anonymous'}</strong>
+                                    <span class="feedback-rating">
+                                        ${'★'.repeat(f.rating || 0)}${'☆'.repeat(5 - (f.rating || 0))}
+                                    </span>
+                                </div>
+                                <p>${f.comment || '<em>No comment</em>'}</p>
+                                <small>${f.created_at ? AppUtils.formatDate(f.created_at) : ''}</small>
+                            </div>
+                        `).join('');
+                }
+
+                // Show modal
+                document.getElementById('adminFeedbackModal').classList.add('active');
+
+            } catch (error) {
+                console.error('Error loading feedback:', error);
+                AppUtils.showError(error.message || 'Failed to load feedback');
+            } finally {
+                AppUtils.hideLoader();
+            }
         }
 
-        document.getElementById('adminFeedbackModal').classList.add('active');
-
-    } catch (error) {
-        AppUtils.showError('Failed to load feedback');
-        console.error(error);
-    } finally {
-        AppUtils.hideLoader();
-    }
-}
-
 function closeAdminFeedbackModal() {
-    document.getElementById('adminFeedbackModal').classList.remove('active');
+    const modal = document.getElementById('adminFeedbackModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
 }
 </script>
 

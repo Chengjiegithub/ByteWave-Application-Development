@@ -99,7 +99,10 @@
                 <h1>Student Dashboard</h1>
                 <div class="header-actions">
                     <div class="user-info">
-                        <div class="user-avatar" id="userAvatar">S</div>
+                        <div class="user-avatar" id="userAvatar">
+                            <img id="userAvatarImg" src="" alt="Profile" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            <span id="userAvatarText">S</span>
+                        </div>
                         <div>
                             <div style="font-weight: 600;" id="userName">Loading...</div>
                             <div style="font-size: 12px; color: var(--gray);" id="userEmail"></div>
@@ -112,7 +115,7 @@
             <div class="dashboard-content">
                 <!-- Pending Status Alert -->
                 <div id="pendingAlert" class="alert alert-warning" style="display: none;">
-                    <h3>⏳ Account Pending Approval</h3>
+                    <h3>Account Pending Approval</h3>
                     <p>Welcome to GPS - Student Consumer Movement! Your account is currently under review. Once approved, you'll be able to join our consumer education programs and workshops. This usually takes 1-2 business days.</p>
                 </div>
 
@@ -127,7 +130,7 @@
 
                 <!-- Rejected Status Alert -->
                 <div id="rejectedAlert" class="alert alert-danger" style="display: none;">
-                    <h3>❌ Account Rejected</h3>
+                    <h3>Account Rejected</h3>
                     <p>Unfortunately, your account application was not approved. Please contact support for more information.</p>
                 </div>
 
@@ -199,7 +202,19 @@
                 // Update header
                 document.getElementById('userName').textContent = user.name;
                 document.getElementById('userEmail').textContent = user.email;
-                document.getElementById('userAvatar').textContent = AppUtils.getInitials(user.name);
+                
+                // Update avatar - show image if available, otherwise show initials
+                const avatarImg = document.getElementById('userAvatarImg');
+                const avatarText = document.getElementById('userAvatarText');
+                if (user.profile_picture) {
+                    avatarImg.src = user.profile_picture;
+                    avatarImg.style.display = 'block';
+                    avatarText.style.display = 'none';
+                } else {
+                    avatarImg.style.display = 'none';
+                    avatarText.style.display = 'block';
+                    avatarText.textContent = AppUtils.getInitials(user.name);
+                }
                 
                 // Update profile section
                 document.getElementById('profileName').textContent = user.name;
@@ -257,15 +272,12 @@
                         <div class="event-title">${event.event_name}</div>
                         <div class="event-meta">
                             <div class="event-meta-item">
-                                <span>📍</span>
                                 <span>${event.location || 'TBA'}</span>
                             </div>
                             <div class="event-meta-item">
-                                <span>📅</span>
                                 <span>${AppUtils.formatDate(event.event_date)}</span>
                             </div>
                             <div class="event-meta-item">
-                                <span>🕐</span>
                                 <span>${event.event_time || 'TBA'}</span>
                             </div>
                         </div>
@@ -274,12 +286,18 @@
                         ${event.roles && event.roles.length > 0 ? `
                             <div class="event-roles">
                                 <h4>Available Roles:</h4>
-                                ${event.roles.map(role => `
+                                ${event.roles.map(role => {
+                                    const slotsLeft = (role.slots || 0) - (role.approvedCount || 0);
+                                    const isFull = slotsLeft <= 0;
+                                    return `
                                     <div class="role-item">
                                         <span class="role-name">${role.role_name}</span>
-                                        <span class="role-slots">${role.slots} slots</span>
+                                        <span class="role-slots" style="color: ${isFull ? '#dc3545' : '#28a745'};">
+                                            ${isFull ? '❌ Full' : `✅ ${slotsLeft} left`} (${role.approvedCount || 0}/${role.slots})
+                                        </span>
                                     </div>
-                                `).join('')}
+                                `;
+                                }).join('')}
                             </div>
                         ` : ''}
                         
@@ -339,21 +357,29 @@
             document.getElementById('modalEventLocation').textContent = event.location || 'TBA';
             
             // Display roles
-            const rolesHTML = event.roles && event.roles.length > 0 ? event.roles.map(role => `
+            const rolesHTML = event.roles && event.roles.length > 0 ? event.roles.map(role => {
+                const slotsLeft = (role.slots || 0) - (role.approvedCount || 0);
+                const isFull = slotsLeft <= 0;
+                return `
                 <div class="role-card">
                     <div class="role-info">
                         <h4>${role.role_name}</h4>
-                        <p style="color: var(--gray); margin: 5px 0;">Available slots: ${role.slots}</p>
-                        <p style="font-size: 14px; color: var(--gray);">
-                            Approved: ${role.approvedCount || 0} | Pending: ${role.pendingCount || 0}
+                        <p style="color: var(--gray); margin: 5px 0;">
+                            <strong style="color: ${isFull ? '#dc3545' : '#28a745'};">
+                                ${isFull ? 'Full' : `${slotsLeft} slot${slotsLeft !== 1 ? 's' : ''} left`}
+                            </strong>
+                        </p>
+                        <p style="font-size: 14px; color: var(--gray); margin: 5px 0;">
+                            Total: ${role.slots} | Approved: ${role.approvedCount || 0} | Pending: ${role.pendingCount || 0}
                         </p>
                     </div>
                     <button class="btn btn-primary" onclick="applyForRole(${event.id}, ${role.id})" 
-                            ${(role.approvedCount >= role.slots) ? 'disabled' : ''}>
-                        ${(role.approvedCount >= role.slots) ? 'Full' : 'Apply'}
+                            ${isFull ? 'disabled' : ''}>
+                        ${isFull ? 'Full' : 'Apply'}
                     </button>
                 </div>
-            `).join('') : '<p>No roles available</p>';
+            `;
+            }).join('') : '<p>No roles available</p>';
             
             document.getElementById('modalRolesList').innerHTML = rolesHTML;
             modal.classList.add('active');
@@ -397,16 +423,16 @@
                     </div>
                     <div class="detail-row">
                         <div class="detail-item">
-                            <strong>📅 Date:</strong>
+                            <strong>Date:</strong>
                             <p id="modalEventDate">-</p>
                         </div>
                         <div class="detail-item">
-                            <strong>🕐 Time:</strong>
+                            <strong>Time:</strong>
                             <p id="modalEventTime">-</p>
                         </div>
                     </div>
                     <div class="detail-item">
-                        <strong>📍 Location:</strong>
+                        <strong>Location:</strong>
                         <p id="modalEventLocation">-</p>
                     </div>
                 </div>
