@@ -138,14 +138,57 @@ const createEvent = async (req, res) => {
 const updateEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { event_name, description, event_date, event_time, location, status } = req.body;
+    const { event_name, description, event_date, event_time, location, status, roles } = req.body;
+
+    if (!event_name || !event_date) {
+      return res.status(400).json({ error: 'Event name and date are required' });
+    }
 
     const conn = await pool.getConnection();
 
+    // 1. Update event basic info
     await conn.query(
       'UPDATE events SET event_name = ?, description = ?, event_date = ?, event_time = ?, location = ?, status = ? WHERE id = ?',
-      [event_name, description, event_date, event_time, location, status, eventId]
+      [event_name, description, event_date, event_time, location, status || 'ongoing', eventId]
     );
+
+    // 2. Update roles if provided
+    if (Array.isArray(roles) && roles.length > 0) {
+      // Get existing roles to check which ones to delete
+      const [existingRoles] = await conn.query(
+        'SELECT id FROM event_roles WHERE event_id = ?',
+        [eventId]
+      );
+
+      const existingRoleIds = existingRoles.map(r => r.id);
+      const providedRoleIds = roles.filter(r => r.id).map(r => r.id);
+
+      // Delete roles that are no longer in the provided list
+      const rolesToDelete = existingRoleIds.filter(id => !providedRoleIds.includes(id));
+      if (rolesToDelete.length > 0) {
+        await conn.query(
+          'DELETE FROM event_roles WHERE id IN (?)',
+          [rolesToDelete]
+        );
+      }
+
+      // Update or insert roles
+      for (const role of roles) {
+        if (role.id) {
+          // Update existing role
+          await conn.query(
+            'UPDATE event_roles SET role_name = ?, slots = ? WHERE id = ?',
+            [role.role_name, role.slots || role.total_needed, role.id]
+          );
+        } else {
+          // Insert new role
+          await conn.query(
+            'INSERT INTO event_roles (event_id, role_name, slots) VALUES (?, ?, ?)',
+            [eventId, role.role_name, role.slots || role.total_needed]
+          );
+        }
+      }
+    }
 
     conn.release();
 
@@ -203,15 +246,19 @@ const applyForRole = async (req, res) => {
       return res.status(404).json({ error: 'Role not found in event' });
     }
 
-    // Check if already applied
+    // Check if already applied (only block if pending or approved)
+    // Allow re-application if previously rejected
     const [existing] = await conn.query(
-      'SELECT id FROM event_applications WHERE event_id = ? AND user_id = ? AND status IN ("pending","approved")',
-      [eventId, userId]
+      'SELECT id, status FROM event_applications WHERE event_id = ? AND user_id = ? AND role_id = ? AND status IN ("pending","approved")',
+      [eventId, userId, role_id]
     );
     if (existing.length > 0) {
       conn.release();
-      return res.status(400).json({ error: 'Already applied for this event' });
+      return res.status(400).json({ error: 'Already applied for this role in this event' });
     }
+    
+    // If there's a rejected application for this role, allow re-application by creating a new one
+    // (We don't update the old one, we create a new application)
 
     // Create application
     await conn.query(
@@ -273,10 +320,20 @@ const cancelApplication = async (req, res) => {
   // MEMBER: SUBMIT EVENT FEEDBACK
   const submitFeedback = async (req, res) => {
   const userId = req.session.userId;
-  const { eventId } = req.params;
+  const eventId = parseInt(req.params.eventId, 10);
   const { rating, comment } = req.body;
+  
+  if (!userId) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+  
+  if (!eventId || isNaN(eventId)) {
+    return res.status(400).json({ error: 'Invalid event ID' });
+  }
 
-  if (!rating || rating < 1 || rating > 5) {
+  // Convert rating to number and validate
+  const ratingNum = parseInt(rating, 10);
+  if (!rating || isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
     return res.status(400).json({ error: 'Rating must be between 1 and 5' });
   }
 
@@ -296,7 +353,7 @@ const cancelApplication = async (req, res) => {
 
     await conn.query(
       'INSERT INTO event_feedback (event_id, user_id, rating, comment) VALUES (?, ?, ?, ?)',
-      [eventId, userId, rating, comment || null]
+      [eventId, userId, ratingNum, comment || null]
     );
 
     conn.release();
@@ -507,11 +564,26 @@ const updateApplicationStatus = async (req, res) => {
 };
 
 // ADMIN: VIEW EVENT FEEDBACK
-const getEventFeedback = async (req, res) =>{
-  const { eventId } = req.params;
+const getEventFeedback = async (req, res) => {
+  const eventId = parseInt(req.params.eventId, 10);
+
+  if (!eventId || isNaN(eventId)) {
+    return res.status(400).json({ error: 'Invalid event ID' });
+  }
 
   try {
     const conn = await pool.getConnection();
+
+    // Verify event exists
+    const [events] = await conn.query(
+      'SELECT id FROM events WHERE id = ?',
+      [eventId]
+    );
+
+    if (events.length === 0) {
+      conn.release();
+      return res.status(404).json({ error: 'Event not found' });
+    }
 
     const [feedback] = await conn.query(`
       SELECT u.name, f.rating, f.comment, f.created_at
@@ -529,13 +601,13 @@ const getEventFeedback = async (req, res) =>{
     conn.release();
 
     res.json({
-      averageRating: avg[0].averageRating || 0,
+      averageRating: avg[0].averageRating ? parseFloat(avg[0].averageRating) : 0,
       totalFeedback: feedback.length,
       feedback
     });
 
   } catch (err) {
-    console.error(err);
+    console.error('getEventFeedback error:', err);
     res.status(500).json({ error: 'Failed to load feedback' });
   }
 };
