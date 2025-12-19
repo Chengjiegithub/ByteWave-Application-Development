@@ -176,7 +176,7 @@ const deleteEvent = async (req, res) => {
 // Member apply for event role
 const applyForRole = async (req, res) => {
   try {
-    const eventId = parseInt(req.params.id, 10);
+    const eventId = parseInt(req.params.eventId, 10);
     const { role_id } = req.body;
     const userId = req.session?.userId;
 
@@ -231,7 +231,7 @@ const applyForRole = async (req, res) => {
 //Member cancel for pending role application
 const cancelApplication = async (req, res) => {
   try {
-    const applicationId = parseInt(req.params.id, 10);
+    const applicationId = parseInt(req.params.applicationId, 10);
     const userId = req.session?.userId;
     if (!userId) return res.status(401).json({ error: 'Not logged in' });
 
@@ -270,6 +270,44 @@ const cancelApplication = async (req, res) => {
   }
 };
 
+  // MEMBER: SUBMIT EVENT FEEDBACK
+  const submitFeedback = async (req, res) => {
+  const userId = req.session.userId;
+  const { eventId } = req.params;
+  const { rating, comment } = req.body;
+
+  if (!rating || rating < 1 || rating > 5) {
+    return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    // Prevent duplicate feedback
+    const [existing] = await conn.query(
+      'SELECT id FROM event_feedback WHERE event_id = ? AND user_id = ?',
+      [eventId, userId]
+    );
+
+    if (existing.length > 0) {
+      conn.release();
+      return res.status(400).json({ error: 'Feedback already submitted' });
+    }
+
+    await conn.query(
+      'INSERT INTO event_feedback (event_id, user_id, rating, comment) VALUES (?, ?, ?, ?)',
+      [eventId, userId, rating, comment || null]
+    );
+
+    conn.release();
+    res.json({ message: 'Feedback submitted successfully' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to submit feedback' });
+  }
+};
+
 // Get ALL applications across all events (admin only)
 const getAllApplications = async (req, res) => {
   try {
@@ -304,7 +342,7 @@ const getAllApplications = async (req, res) => {
 // Admin view applications for event roles
 const getApplicationsForEvent = async (req, res) => {
   try {
-    const eventId = parseInt(req.params.id, 10);
+    const eventId = parseInt(req.params.eventId, 10);
     const conn = await pool.getConnection();
 
     // 1. Fetch roles for the event
@@ -354,7 +392,7 @@ const getApplicationsForEvent = async (req, res) => {
 //Admin approve for event role application
 const approveApplication = async (req, res) => {
   try {
-    const applicationId = parseInt(req.params.id, 10);
+    const applicationId = parseInt(req.params.applicationId, 10);
     const conn = await pool.getConnection();
 
     const [apps] = await conn.query(
@@ -398,7 +436,7 @@ const approveApplication = async (req, res) => {
 //Admin reject for event role application
 const rejectApplication = async (req, res) => {
   try {
-    const applicationId = parseInt(req.params.id, 10);
+    const applicationId = parseInt(req.params.applicationId, 10);
     const conn = await pool.getConnection();
 
     await conn.query('UPDATE event_applications SET status="rejected" WHERE id=?', [applicationId]);
@@ -468,6 +506,42 @@ const updateApplicationStatus = async (req, res) => {
   }
 };
 
+// ADMIN: VIEW EVENT FEEDBACK
+const getEventFeedback = async (req, res) =>{
+  const { eventId } = req.params;
+
+  try {
+    const conn = await pool.getConnection();
+
+    const [feedback] = await conn.query(`
+      SELECT u.name, f.rating, f.comment, f.created_at
+      FROM event_feedback f
+      JOIN users u ON f.user_id = u.id
+      WHERE f.event_id = ?
+      ORDER BY f.created_at DESC
+    `, [eventId]);
+
+    const [avg] = await conn.query(
+      'SELECT AVG(rating) AS averageRating FROM event_feedback WHERE event_id = ?',
+      [eventId]
+    );
+
+    conn.release();
+
+    res.json({
+      averageRating: avg[0].averageRating || 0,
+      totalFeedback: feedback.length,
+      feedback
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to load feedback' });
+  }
+};
+
+
+
 
 module.exports = {
   getAllEvents,
@@ -481,5 +555,7 @@ module.exports = {
   approveApplication,
   rejectApplication,
   cancelApplication,
-  updateApplicationStatus
+  updateApplicationStatus,
+  submitFeedback,
+  getEventFeedback
 };

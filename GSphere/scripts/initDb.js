@@ -19,13 +19,13 @@ async function initializeDatabase() {
     conn = await mysql.createConnection({
       host: process.env.DB_HOST || 'localhost',
       user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || '',
-      port: parseInt(process.env.DB_PORT || '3306')
+      password: process.env.DB_PASSWORD ||'',
+      port: parseInt(process.env.DB_PORT || '3307')
     });
 
     console.log('✅ Connected to MySQL');
     console.log(`   Host: ${process.env.DB_HOST || 'localhost'}`);
-    console.log(`   Port: ${process.env.DB_PORT || '3306'}`);
+    console.log(`   Port: ${process.env.DB_PORT || '3307'}`);
     console.log(`   User: ${process.env.DB_USER || 'root'}`);
 
     const dbName = process.env.DB_NAME || 'gpsphere_db';
@@ -109,7 +109,24 @@ async function initializeDatabase() {
     `);
     console.log('✅ Table event_applications created or exists');
 
-    // 6. Insert default admin if not exists
+     //7. Setup event_feedback table
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS event_feedback (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+         event_id INT NOT NULL,
+        user_id INT NOT NULL,
+        rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE (event_id, user_id)
+      )
+    `);
+    console.log('✅ Table event_feedback created or exists');
+
+    // 8. Insert default admin if not exists
     const [admins] = await conn.query(
       "SELECT * FROM users WHERE email = 'admin@gpsphere.com'"
     );

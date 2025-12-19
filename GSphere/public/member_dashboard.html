@@ -323,7 +323,10 @@
             document.getElementById('applicationsList').innerHTML = html;
         }
 
+        let currentEventId = null;
         async function viewEvent(eventId) {
+             currentEventId = eventId;
+
             const event = eventsData.find(e => e.id === eventId);
             if (!event) return;
             
@@ -389,7 +392,45 @@
             } finally {
                 AppUtils.hideLoader();
             }
+        }   
+     // EVENT FEEDBACK (MEMBER)
+//
+    function openFeedbackModal() {
+        if (!currentEventId) {
+            AppUtils.showError('Invalid event');
+            return;
         }
+    document.getElementById('feedbackModal').classList.add('active');
+    }
+
+    function closeFeedbackModal() {
+        document.getElementById('feedbackModal').classList.remove('active');
+        document.getElementById('feedbackRating').value = '5';
+        document.getElementById('feedbackComment').value = '';
+    }
+
+    async function submitFeedback() {
+        const rating = document.getElementById('feedbackRating').value;
+        const comment = document.getElementById('feedbackComment').value;
+    try {
+        AppUtils.showLoader();
+
+        await AppUtils.apiRequest(
+            `/events/${currentEventId}/feedback`,
+            'POST',
+            { rating, comment }
+        );
+
+        AppUtils.showSuccess('Thank you for your feedback!');
+        closeFeedbackModal();
+
+    } catch (error) {
+        AppUtils.showError(error.message || 'Failed to submit feedback');
+    } finally {
+        AppUtils.hideLoader();
+    }
+}
+
     </script>
 
     <!-- Event Modal -->
@@ -424,10 +465,53 @@
                 <div style="margin-top: 25px;">
                     <h3 style="margin-bottom: 15px; color: #8B2346;">Available Roles</h3>
                     <div id="modalRolesList" class="roles-list"></div>
-                </div>
+
+            <!-- FEEDBACK BUTTON -->
+            <div style="margin-top:15px;text-align:right;">
+                <button class="btn btn-primary" onclick="openFeedbackModal()">⭐ Leave Feedback</button> </div>
             </div>
         </div>
     </div>
+
+    <!---EVENT FEEDBACK MODAL-->
+<div id="feedbackModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2>Event Feedback</h2>
+            <button class="modal-close" onclick="closeFeedbackModal()">×</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Rating</label>
+                <select id="feedbackRating" class="form-control">
+                    <option value="5">★★★★★ (Excellent)</option>
+                    <option value="4">★★★★ (Good)</option>
+                    <option value="3">★★★ (Average)</option>
+                    <option value="2">★★ (Poor)</option>
+                    <option value="1">★ (Very Poor)</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Comment (optional)</label>
+                <textarea
+                    id="feedbackComment"
+                    class="form-control"
+                    rows="4"
+                    placeholder="Share your experience about this event..."></textarea>
+            </div>
+
+            <button
+                class="btn btn-primary"
+                style="width: 100%; margin-top: 20px;"
+                onclick="submitFeedback()">
+                Submit Feedback
+            </button>
+        </div>
+    </div>
+</div>
+
 
     <style>
         /* Modal Styles */

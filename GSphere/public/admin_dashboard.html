@@ -244,6 +244,31 @@
             padding-top: 20px;
             border-top: 2px solid #f0f0f0;
         }
+
+        .feedback-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        border-left: 4px solid #D4A437;
+        }
+
+        .feedback-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+        .feedback-rating {
+        color: #D4A437;
+        font-size: 14px;
+    }
+
+        .feedback-item small {
+        color: #777;
+        font-size: 12px;
+    }
     </style>
 </head>
 <body>
@@ -535,6 +560,39 @@
         </div>
     </div>
 
+
+    <!-- ADMIN FEEDBACK MODAL -->
+<div id="adminFeedbackModal" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h2>Event Feedback</h2>
+            <button class="modal-close"
+                onclick="closeAdminFeedbackModal()">×</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="stats-grid" style="margin-bottom: 20px;">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3 id="avgRating">0.0</h3>
+                        <p>Average Rating</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3 id="totalFeedback">0</h3>
+                        <p>Total Feedback</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="feedbackList"></div>
+        </div>
+    </div>
+</div>
+
+
     <!-- JavaScript Files -->
     <script src="/js/main.js"></script>
     <script>
@@ -657,9 +715,16 @@
                         ` : ''}
                         
                         <div class="event-actions">
-                            <button class="btn btn-danger btn-sm" onclick="deleteEvent(${event.id})">
-                                Delete
+                            <button class="btn btn-secondary btn-sm"
+                                onclick="viewEventFeedback(${event.id})">
+                                💬 Feedback
                             </button>
+
+                        <button class="btn btn-danger btn-sm"
+                                onclick="deleteEvent(${event.id})">
+                                Delete
+                            </button> 
+
                         </div>
                     </div>
                 </div>
@@ -983,7 +1048,59 @@
                 AppUtils.showError(error.message || 'Failed to update application status');
             }
         }
-    </script>
+
+        async function viewEventFeedback(eventId) {
+    try {
+        AppUtils.showLoader();
+
+        const data = await AppUtils.apiRequest(
+            `/events/${eventId}/feedback`
+        );
+
+        document.getElementById('avgRating').textContent =
+             data.averageRating ? data.averageRating.toFixed(1) : '0.0';
+
+        document.getElementById('totalFeedback').textContent =
+            data.totalFeedback;
+
+        if (!data.feedback || data.feedback.length === 0) {
+            document.getElementById('feedbackList').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">💬</div>
+                    <h3>No Feedback Yet</h3>
+                    <p>No members have submitted feedback for this event</p>
+                </div>
+            `;
+        } else {
+            document.getElementById('feedbackList').innerHTML =
+                data.feedback.map(f => `
+                    <div class="feedback-item">
+                        <div class="feedback-header">
+                            <strong>${f.name}</strong>
+                            <span class="feedback-rating">
+                                ${'★'.repeat(f.rating)}${'☆'.repeat(5 - f.rating)}
+                            </span>
+                        </div>
+                        <p>${f.comment || '<em>No comment</em>'}</p>
+                        <small>${AppUtils.formatDate(f.created_at)}</small>
+                    </div>
+                `).join('');
+        }
+
+        document.getElementById('adminFeedbackModal').classList.add('active');
+
+    } catch (error) {
+        AppUtils.showError('Failed to load feedback');
+        console.error(error);
+    } finally {
+        AppUtils.hideLoader();
+    }
+}
+
+function closeAdminFeedbackModal() {
+    document.getElementById('adminFeedbackModal').classList.remove('active');
+}
+</script>
 
     <!-- Load Chatbot -->
     <script src="/chatbot.js"></script>
