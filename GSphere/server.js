@@ -12,7 +12,10 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: true, // Allow all origins (for development)
+  credentials: true // Allow credentials (cookies, sessions)
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
