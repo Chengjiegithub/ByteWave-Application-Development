@@ -133,7 +133,25 @@ async function initializeDatabase() {
     `);
     console.log('✅ Table event_feedback created or exists');
 
-    // 8. Insert default admin if not exists
+    // 8. Create notifications table
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        type VARCHAR(50) NOT NULL DEFAULT 'event',
+        title VARCHAR(200) NOT NULL,
+        message TEXT,
+        related_id INT,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_user_read (user_id, is_read),
+        INDEX idx_created_at (created_at)
+      )
+    `);
+    console.log('✅ Table notifications created or exists');
+
+    // 9. Insert default admin if not exists
     const [admins] = await conn.query(
       "SELECT * FROM users WHERE email = 'admin@gpsphere.com'"
     );
