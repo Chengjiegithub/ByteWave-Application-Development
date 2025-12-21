@@ -99,6 +99,22 @@
             <header class="dashboard-header">
                 <h1>Member Dashboard</h1>
                 <div class="header-actions">
+                    <!-- Notifications -->
+                    <div class="notification-container" style="position: relative; margin-right: 20px;">
+                        <button id="notificationBell" class="notification-bell" onclick="toggleNotifications()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 10px 15px; border-radius: 50%; cursor: pointer; font-size: 20px; position: relative;">
+                            🔔
+                            <span id="notificationBadge" class="notification-badge" style="display: none; position: absolute; top: 0; right: 0; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold;">0</span>
+                        </button>
+                        <div id="notificationDropdown" class="notification-dropdown" style="display: none; position: absolute; top: 50px; right: 0; background: white; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); width: 350px; max-height: 500px; overflow-y: auto; z-index: 1000;">
+                            <div style="padding: 15px; border-bottom: 2px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+                                <h3 style="margin: 0; color: #333;">Notifications</h3>
+                                <button onclick="markAllNotificationsAsRead()" style="background: none; border: none; color: #3B4A8C; cursor: pointer; font-size: 12px;">Mark all as read</button>
+                            </div>
+                            <div id="notificationsList" style="padding: 10px;">
+                                <div style="text-align: center; padding: 20px; color: #999;">Loading notifications...</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="user-info">
                         <div class="user-avatar" id="userAvatar">
                             <img id="userAvatarImg" src="" alt="Profile" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
@@ -187,6 +203,13 @@
             await loadUserProfile();
             await loadEvents();
             await loadApplications();
+            await loadNotifications();
+            await loadUnreadCount();
+            // Refresh notifications every 30 seconds
+            setInterval(async () => {
+                await loadNotifications();
+                await loadUnreadCount();
+            }, 30000);
         });
 
         async function loadUserProfile() {
@@ -421,7 +444,94 @@
             } finally {
                 AppUtils.hideLoader();
             }
-        }   
+        }
+
+        // NOTIFICATION FUNCTIONS
+        let notificationsOpen = false;
+
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationDropdown');
+            notificationsOpen = !notificationsOpen;
+            dropdown.style.display = notificationsOpen ? 'block' : 'none';
+            if (notificationsOpen) {
+                loadNotifications();
+            }
+        }
+
+        // Close notifications when clicking outside
+        document.addEventListener('click', (e) => {
+            const container = document.querySelector('.notification-container');
+            if (container && !container.contains(e.target)) {
+                document.getElementById('notificationDropdown').style.display = 'none';
+                notificationsOpen = false;
+            }
+        });
+
+        async function loadNotifications() {
+            try {
+                const notifications = await AppUtils.apiRequest('/notifications');
+                renderNotifications(notifications);
+            } catch (error) {
+                console.error('Failed to load notifications:', error);
+                document.getElementById('notificationsList').innerHTML = 
+                    '<div style="text-align: center; padding: 20px; color: #999;">Failed to load notifications</div>';
+            }
+        }
+
+        function renderNotifications(notifications) {
+            const list = document.getElementById('notificationsList');
+            
+            if (notifications.length === 0) {
+                list.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">No notifications</div>';
+                return;
+            }
+
+            list.innerHTML = notifications.map(notif => `
+                <div class="notification-item ${notif.is_read ? '' : 'unread'}" 
+                     onclick="markNotificationAsRead(${notif.id})" 
+                     style="cursor: pointer; padding: 15px; border-bottom: 1px solid #f0f0f0; transition: background 0.2s; ${notif.is_read ? '' : 'background: #eef2ff; font-weight: 600;'}">
+                    <div style="font-weight: 600; color: #333; margin-bottom: 5px;">${notif.title}</div>
+                    <div style="color: #666; font-size: 14px; margin-bottom: 5px;">${notif.message || ''}</div>
+                    <div style="color: #999; font-size: 12px;">${AppUtils.formatDate(notif.created_at)}</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadUnreadCount() {
+            try {
+                const result = await AppUtils.apiRequest('/notifications/unread-count');
+                const badge = document.getElementById('notificationBadge');
+                if (result.count > 0) {
+                    badge.textContent = result.count > 99 ? '99+' : result.count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Failed to load unread count:', error);
+            }
+        }
+
+        async function markNotificationAsRead(notificationId) {
+            try {
+                await AppUtils.apiRequest(`/notifications/${notificationId}/read`, 'PUT');
+                await loadNotifications();
+                await loadUnreadCount();
+            } catch (error) {
+                console.error('Failed to mark notification as read:', error);
+            }
+        }
+
+        async function markAllNotificationsAsRead() {
+            try {
+                await AppUtils.apiRequest('/notifications/read-all', 'PUT');
+                await loadNotifications();
+                await loadUnreadCount();
+            } catch (error) {
+                AppUtils.showError('Failed to mark all as read');
+                console.error(error);
+            }
+        }
      // EVENT FEEDBACK (MEMBER)
 //
     function openFeedbackModal() {
