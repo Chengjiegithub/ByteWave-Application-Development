@@ -40,12 +40,14 @@ const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const eventRoutes = require('./src/routes/eventRoutes');
 const chatbotRoutes = require('./src/routes/chatbotRoutes');
+const notificationRoutes = require('./src/routes/notificationRoutes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -63,6 +65,37 @@ app.use((error, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// Scheduled job to notify members about upcoming events (runs daily at 9 AM)
+const { notifyMembersAboutUpcomingEvents } = require('./src/controllers/notificationController');
+
+// Function to schedule daily notifications
+function scheduleUpcomingEventNotifications() {
+  // Calculate milliseconds until next 9 AM
+  const now = new Date();
+  const next9AM = new Date();
+  next9AM.setHours(9, 0, 0, 0);
+  
+  // If it's already past 9 AM today, schedule for tomorrow
+  if (now >= next9AM) {
+    next9AM.setDate(next9AM.getDate() + 1);
+  }
+  
+  const msUntil9AM = next9AM - now;
+  
+  setTimeout(() => {
+    console.log('📅 Running scheduled notification for upcoming events...');
+    notifyMembersAboutUpcomingEvents();
+    
+    // Schedule next run (24 hours later)
+    setInterval(() => {
+      console.log('📅 Running scheduled notification for upcoming events...');
+      notifyMembersAboutUpcomingEvents();
+    }, 24 * 60 * 60 * 1000); // 24 hours
+  }, msUntil9AM);
+  
+  console.log(`⏰ Scheduled upcoming event notifications to run daily at 9 AM`);
+}
+
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
@@ -79,5 +112,10 @@ app.listen(PORT, () => {
   console.log(`   POST   /api/events             - Create event (admin)`);
   console.log(`   PUT    /api/events/:id         - Update event (admin)`);
   console.log(`   DELETE /api/events/:id         - Delete event (admin)`);
+  console.log(`   GET    /api/notifications      - Get notifications`);
+  console.log(`   POST   /api/notifications/notify-upcoming - Notify about upcoming events (admin)`);
   console.log(`   POST   /api/chatbot            - Send message to chatbot`);
+  
+  // Start scheduled notifications
+  scheduleUpcomingEventNotifications();
 });
