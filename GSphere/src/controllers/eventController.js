@@ -4,6 +4,7 @@
 // Replaces event management from your PHP files
 
 const pool = require('../config/database');
+const { createNotificationsForAllUsers } = require('./notificationController');
 
 const getAllEvents = async (req, res) => {
   try {
@@ -121,6 +122,22 @@ const createEvent = async (req, res) => {
     conn.release();
 
     console.log('✅ Event created successfully with ID:', eventId);
+    
+    // Create website notifications for all members about the new event
+    const notificationTitle = `New Event: ${event_name}`;
+    const notificationMessage = description 
+      ? `${description.substring(0, 100)}${description.length > 100 ? '...' : ''}`
+      : `A new event "${event_name}" has been created. Check it out!`;
+    
+    createNotificationsForAllUsers(
+      'event',
+      notificationTitle,
+      notificationMessage,
+      eventId
+    ).catch(err => {
+      console.error('❌ Error creating website notifications:', err);
+    });
+    
     return res.status(201).json({
       message: 'Event created successfully!',
       eventId
