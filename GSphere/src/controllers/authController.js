@@ -144,13 +144,6 @@ const login = async (req, res) => {
     // Send TAC via email
     const result =  await sendTACEmail(email, tacCode);
 
-    return res.json({
-    message: "TAC generated (TEST MODE). No email sent.",
-    requireTAC: true,
-    tac: result.tac  // for easy testing
-  });
-
-
     // (Normal) Return message (don't send token yet - user must verify TAC)
     return res.json({ 
       message: 'TAC code sent to your email. Please verify to complete login.',
@@ -214,14 +207,6 @@ const forgotPassword = async (req, res) => {
     );
 
     conn.release();
-
-    // Send reset email (or return code in test mode)
-    const result = await sendResetEmail(email, resetCode);
-      return res.json({
-        message: 'Reset code generated (TEST MODE). No email sent.',
-        resetCode
-      });
-    
 
     return res.json({ message: 'Password reset code sent to your email.' });
   } catch (error) {
